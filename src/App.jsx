@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
@@ -23,7 +23,7 @@ const Layout = ({ children }) => {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -35,7 +35,7 @@ function App() {
         <Route path="/export" element={<Layout><Export /></Layout>} />
         <Route path="/account" element={<Layout><Account /></Layout>} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
