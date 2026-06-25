@@ -154,40 +154,6 @@
   border: 2px solid var(--border-color);
 }
 
-/* Marquee */
-.marquee-wrapper {
-  background: var(--accent-primary);
-  color: white;
-  padding: 1.5rem 0;
-  overflow: hidden;
-  border-top: 2px solid var(--border-color);
-  border-bottom: 2px solid var(--border-color);
-  white-space: nowrap;
-  display: flex;
-}
-
-.marquee-content {
-  display: inline-flex;
-  animation: marquee 20s linear infinite;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 1.5rem;
-  text-transform: uppercase;
-  will-change: transform;
-}
-
-.marquee-item {
-  padding: 0 2rem;
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-@keyframes marquee {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
-}
-
 /* Features 3-Column */
 .features-section {
   background-color: var(--bg-secondary);
