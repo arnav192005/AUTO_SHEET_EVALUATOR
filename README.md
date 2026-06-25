@@ -53,3 +53,14 @@ npm run build
 - `src/pages/`: Contains all the main views (Landing, Dashboard, Login, ReviewSession, Upload, Export).
 - `src/components/`: Reusable UI components like the Sidebar.
 - `src/index.css`: Global styles, CSS variables (design system), and animations.
+
+---
+
+## 👤 Author
+
+**Arnav**
+- GitHub: [@arnav192005](https://github.com/arnav192005)
+
+<p align="center">
+  Made with ❤️ by Arnav
+</p>
