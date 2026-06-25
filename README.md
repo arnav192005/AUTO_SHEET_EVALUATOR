@@ -62,5 +62,5 @@ npm run build
 - GitHub: [@arnav192005](https://github.com/arnav192005)
 
 <p align="center">
-  Made with ❤️ by Arnav
+  Made by Arnav
 </p>
