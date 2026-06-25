@@ -109,21 +109,6 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* 3. Marquee Banner */}
-      <div className="marquee-wrapper">
-        <div className="marquee-content">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="marquee-item">
-              <span>AutoEval</span>
-              <Brain size={24} />
-              <span>Fast</span>
-              <Zap size={24} />
-              <span>Accurate</span>
-              <ShieldCheck size={24} />
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* 4. Features 3-Column Grid */}
       <section className="features-section section-padding section-border-bottom">
@@ -155,44 +140,44 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* 5. Evaluation Pipeline */}
+      {/* 5. How It Works Workflow */}
       <section className="pipeline-section section-padding section-border-bottom">
         <div className="pipeline-grid">
           <div>
-            <h2 className="section-title" style={{ textAlign: 'left' }}>Empowering your <br/>evaluation pipeline</h2>
+            <h2 className="section-title" style={{ textAlign: 'left' }}>How AutoEval <br/>actually works</h2>
             <p className="section-subtitle">
-              From scanning raw answer booklets to exporting finalized scores to your LMS, AutoEval handles the entire lifecycle securely.
+              A transparent, 4-step workflow that transforms raw, messy answer sheets into finalized, analytical grade reports.
             </p>
-            <Link to="/login" className="btn-primary">See How It Works</Link>
+            <Link to="/login" className="btn-primary">Try the Workflow</Link>
           </div>
           
           <div className="pipeline-steps">
             <div className="pipeline-step">
               <div className="step-number">1</div>
               <div className="step-content">
-                <h3>Rubric Analysis</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Establishing the baseline truth for grading.</p>
+                <h3>Upload Answer Sheets</h3>
+                <p style={{ color: 'var(--text-secondary)' }}>Securely upload scanned PDF booklets or images of student exams.</p>
               </div>
             </div>
             <div className="pipeline-step">
               <div className="step-number">2</div>
               <div className="step-content">
-                <h3>Script Ingestion</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Bulk upload and automatic page categorization.</p>
+                <h3>Define Custom Rubrics</h3>
+                <p style={{ color: 'var(--text-secondary)' }}>Input marking schemes, partial credit rules, and expected answers.</p>
               </div>
             </div>
             <div className="pipeline-step">
               <div className="step-number">3</div>
               <div className="step-content">
-                <h3>Explainable Moderation</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>AI grades are accompanied by clear rationale.</p>
+                <h3>AI Semantic Evaluation</h3>
+                <p style={{ color: 'var(--text-secondary)' }}>Our engine reads handwritten text (OCR) and compares it semantically against your rubric.</p>
               </div>
             </div>
             <div className="pipeline-step">
               <div className="step-number">4</div>
               <div className="step-content">
-                <h3>LMS Integration</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Direct sync to Canvas, Blackboard, and Moodle.</p>
+                <h3>Review & Export</h3>
+                <p style={{ color: 'var(--text-secondary)' }}>Teachers review flagged grades, approve scores, and export directly to their LMS.</p>
               </div>
             </div>
           </div>
