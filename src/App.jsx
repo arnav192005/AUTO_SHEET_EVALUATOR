@@ -23,6 +23,14 @@ import Terms from './pages/info/Terms';
 import Security from './pages/info/Security';
 import CookieBanner from './components/CookieBanner';
 
+// Force redirect to landing page on hard refresh
+if (window.performance) {
+  const navEntries = window.performance.getEntriesByType("navigation");
+  if (navEntries.length > 0 && navEntries[0].type === "reload") {
+    window.location.hash = "/";
+  }
+}
+
 // A simple layout wrapper
 const Layout = ({ children }) => {
   return (
