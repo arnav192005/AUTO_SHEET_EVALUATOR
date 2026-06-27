@@ -5,26 +5,24 @@ import './Landing.css';
 
 const Landing = () => {
   const [openFaq, setOpenFaq] = useState(0);
-  const [roleTab, setRoleTab] = useState('admin');
-  const [isTitleHovered, setIsTitleHovered] = useState(false);
+  const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
 
   React.useEffect(() => {
-    const roles = ['student', 'teacher', 'admin'];
-    const interval = setInterval(() => {
-      setRoleTab((prevRole) => {
-        const currentIndex = roles.indexOf(prevRole);
-        return roles[(currentIndex + 1) % roles.length];
-      });
-    }, 4000); // Change role every 4 seconds
 
-    return () => clearInterval(interval);
+    const workflowInterval = setInterval(() => {
+      setActiveWorkflowStep((prev) => (prev + 1) % 4);
+    }, 3500); // Change workflow step every 3.5 seconds
+
+    return () => {
+      clearInterval(workflowInterval);
+    };
   }, []);
 
   const faqs = [
-    { q: "Does it support regional boards like CBSE or ICSE?", a: "Yes, AutoEval's rubric engine can be fully customized to align with specific board marking schemes and guidelines." },
+    { q: "Does it support regional boards like CBSE or ICSE?", a: "Yes, ScribScore's rubric engine can be fully customized to align with specific board marking schemes and guidelines." },
     { q: "How accurate is the handwriting OCR?", a: "Our Multimodal OCR Parse model achieves over 98% accuracy on standard cursive and print handwriting." },
     { q: "Can it grade step-by-step math derivations?", a: "Absolutely. The semantic evaluation engine awards partial credit for correct mathematical steps even if the final answer is wrong." },
-    { q: "Is the student data secure?", a: "AutoEval is built with privacy by design. We are SOC-2 compliant and FERPA ready." }
+    { q: "Is the student data secure?", a: "ScribScore is built with privacy by design. We are SOC-2 compliant and FERPA ready." }
   ];
 
   return (
@@ -34,7 +32,7 @@ const Landing = () => {
       <nav className="landing-nav">
         <Link to="/" className="landing-logo">
           <Brain size={28} />
-          AutoEval
+          ScribScore
         </Link>
         <div className="nav-links">
           <Link to="/login" className="btn-secondary">Login</Link>
@@ -48,65 +46,32 @@ const Landing = () => {
           New: Fast & Accurate AI Evaluation
         </div>
         <h1 
-          className="hero-title interactive-title animate-fade-in delay-1" 
-          onMouseEnter={() => setIsTitleHovered(true)}
-          onMouseLeave={() => setIsTitleHovered(false)}
-          style={{ fontSize: 'clamp(4rem, 10vw, 8rem)', letterSpacing: '-0.05em', position: 'relative', display: 'inline-block' }}
+          className="hero-title animate-fade-in delay-1" 
+          style={{ 
+            fontSize: 'clamp(4rem, 12vw, 10rem)', 
+            letterSpacing: '-0.05em', 
+            lineHeight: '0.95',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            textAlign: 'left'
+          }}
         >
-          {/* Invisible placeholder to maintain layout size */}
-          <span style={{ visibility: 'hidden', pointerEvents: 'none' }}>
-            GRADE SMART.
-          </span>
-          <span style={{ 
-            position: 'absolute', top: 0, left: 0, width: '100%', textAlign: 'center',
-            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)', 
-            opacity: isTitleHovered ? 0 : 1, 
-            transform: isTitleHovered ? 'translateY(-20px)' : 'translateY(0)' 
-          }}>
-            AUTOEVAL.
-          </span>
-          <span style={{ 
-            position: 'absolute', top: 0, left: 0, width: '100%', textAlign: 'center',
-            color: 'var(--accent-primary)',
-            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)', 
-            opacity: isTitleHovered ? 1 : 0, 
-            transform: isTitleHovered ? 'translateY(0)' : 'translateY(20px)'
-          }}>
-            GRADE SMART.
-          </span>
+          <span style={{ color: 'var(--text-primary)' }}>SCRIB</span>
+          <span style={{ color: 'var(--text-tertiary)' }}>SCORE.</span>
         </h1>
         <p className="hero-subtitle animate-fade-in delay-2" style={{ fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>
-          The AI academic evaluation platform. Grade papers instantly, apply custom rubrics, and generate rich insights without breaking a sweat.
+          ScribeScore is an AI-powered intelligent exam grading system that automatically evaluates handwritten student answer sheets using a multi-stage AI pipeline
         </p>
         <div className="hero-ctas animate-fade-in delay-3">
           <Link to="/login" className="btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
-            Try AutoEval Now
+            Try ScribScore Now
           </Link>
           <Link to="/login" className="btn-secondary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
             View Documentation
           </Link>
         </div>
         
-        {/* Mockup Dashboard */}
-        <div className="mockup-container animate-fade-in delay-3">
-          <div className="mockup-header">
-            <div className="mockup-dot"></div>
-            <div className="mockup-dot"></div>
-            <div className="mockup-dot"></div>
-          </div>
-          <div style={{ padding: '2rem', flex: 1, backgroundColor: 'var(--bg-secondary)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontFamily: 'var(--font-mono)' }}>Recent Submissions</h3>
-              <div className="badge badge-success">Processing Active</div>
-            </div>
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{ padding: '1rem', border: '2px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', background: 'var(--bg-color)' }}>
-                <div><strong>Midterm Physics 101</strong> <br/><span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem'}}>Batch #{i}049</span></div>
-                <div style={{ textAlign: 'right' }}><strong>Graded</strong> <br/><span style={{ color: 'var(--accent-primary)'}}>View Report</span></div>
-              </div>
-            ))}
-          </div>
-        </div>
       </header>
 
 
@@ -118,23 +83,23 @@ const Landing = () => {
         
         <div className="features-grid-3">
           <div className="feature-card">
-            <div className="feature-icon-wrapper"><BookOpen size={28} /></div>
-            <h3 className="feature-title">Rubric Ingestion</h3>
-            <p className="feature-desc">Upload your marking schemes and let our engine automatically parse and understand the grading logic.</p>
+            <div className="feature-icon-wrapper"><Layers size={28} /></div>
+            <h3 className="feature-title">Multi-Stage AI Pipeline</h3>
+            <p className="feature-desc">Leveraging advanced machine learning, ScribeScore processes raw handwritten answers through specialized OCR and semantic analysis stages for unparalleled accuracy.</p>
             <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
           </div>
           
           <div className="feature-card">
-            <div className="feature-icon-wrapper"><Settings size={28} /></div>
-            <h3 className="feature-title">AI Customization</h3>
-            <p className="feature-desc">Tweak the strictness, adjust partial credit thresholds, and train the AI on past graded examples.</p>
+            <div className="feature-icon-wrapper"><ScanText size={28} /></div>
+            <h3 className="feature-title">Handwritten Answer Recognition</h3>
+            <p className="feature-desc">Our proprietary computer vision models are trained specifically on student handwriting, effortlessly digitizing and parsing even the most challenging cursive.</p>
             <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon-wrapper"><FileText size={28} /></div>
-            <h3 className="feature-title">Evaluation Logs</h3>
-            <p className="feature-desc">Generate transparent, traceable logs for every single point awarded or deducted for full auditability.</p>
+            <div className="feature-icon-wrapper"><Bot size={28} /></div>
+            <h3 className="feature-title">Automated Intelligent Grading</h3>
+            <p className="feature-desc">Instantly evaluate exams against your provided answer keys and rubrics, automatically assigning partial credit and identifying logical steps in student responses.</p>
             <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
           </div>
         </div>
@@ -144,116 +109,53 @@ const Landing = () => {
       <section className="pipeline-section section-padding section-border-bottom">
         <div className="pipeline-grid">
           <div>
-            <h2 className="section-title" style={{ textAlign: 'left' }}>How AutoEval <br/>actually works</h2>
+            <h2 className="section-title" style={{ textAlign: 'left' }}>How ScribScore <br/>actually works</h2>
             <p className="section-subtitle">
               A transparent, 4-step workflow that transforms raw, messy answer sheets into finalized, analytical grade reports.
             </p>
             <Link to="/login" className="btn-primary">Try the Workflow</Link>
           </div>
           
-          <div className="pipeline-steps">
-            <div className="pipeline-step">
-              <div className="step-number">1</div>
-              <div className="step-content">
-                <h3>Upload Answer Sheets</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Securely upload scanned PDF booklets or images of student exams.</p>
+          <div className="agentic-workflow-wrapper">
+            {/* Terminal Window */}
+            <div className="agentic-terminal animate-fade-in delay-1">
+              <div className="terminal-header">
+                <div className="terminal-dots"><span></span><span></span><span></span></div>
+                <div className="terminal-title">ScribeScore AI Engine</div>
+              </div>
+              <div className="terminal-body typing-container">
+                {activeWorkflowStep === 0 && <p className="typing-text"><span className="term-prompt">&gt;</span> [System] Initializing batch ingest...<br/><span className="term-prompt">&gt;</span> Scanning handwriting features... <span className="term-blink">_</span></p>}
+                {activeWorkflowStep === 1 && <p className="typing-text"><span className="term-prompt">&gt;</span> [Vision Core] Running proprietary OCR...<br/><span className="term-prompt">&gt;</span> Digitizing cursive student logic... <span className="term-blink">_</span></p>}
+                {activeWorkflowStep === 2 && <p className="typing-text"><span className="term-prompt">&gt;</span> [AI Engine] Cross-referencing answer key...<br/><span className="term-prompt">&gt;</span> Awarding partial credit for step 2... <span className="term-blink">_</span></p>}
+                {activeWorkflowStep === 3 && <p className="typing-text"><span className="term-prompt">&gt;</span> [Audit] Flagging anomalies for review...<br/><span className="term-prompt">&gt;</span> Syncing finalized grades to LMS... <span className="term-success">COMPLETE</span></p>}
               </div>
             </div>
-            <div className="pipeline-step">
-              <div className="step-number">2</div>
-              <div className="step-content">
-                <h3>Define Custom Rubrics</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Input marking schemes, partial credit rules, and expected answers.</p>
-              </div>
-            </div>
-            <div className="pipeline-step">
-              <div className="step-number">3</div>
-              <div className="step-content">
-                <h3>AI Semantic Evaluation</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Our engine reads handwritten text (OCR) and compares it semantically against your rubric.</p>
-              </div>
-            </div>
-            <div className="pipeline-step">
-              <div className="step-number">4</div>
-              <div className="step-content">
-                <h3>Review & Export</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>Teachers review flagged grades, approve scores, and export directly to their LMS.</p>
-              </div>
+
+            {/* Visual Nodes */}
+            <div className="agentic-nodes-container">
+              {[
+                { title: 'Scan', desc: 'Batch ingest PDFs', icon: <ScanText size={20}/> },
+                { title: 'Vision', desc: 'Handwriting OCR', icon: <Zap size={20}/> },
+                { title: 'Evaluate', desc: 'Semantic grading', icon: <Brain size={20}/> },
+                { title: 'Verify', desc: 'Teacher approval', icon: <ShieldCheck size={20}/> }
+              ].map((step, index) => (
+                <React.Fragment key={index}>
+                  <div className={`agentic-node ${activeWorkflowStep >= index ? 'active' : ''} ${activeWorkflowStep === index ? 'pulsing' : ''}`} style={{ animationDelay: `${index * 0.1}s` }}>
+                    <div className="node-icon">{step.icon}</div>
+                    <div className="node-info">
+                      <h4>{step.title}</h4>
+                      <p>{step.desc}</p>
+                    </div>
+                  </div>
+                  {index < 3 && <div className={`agentic-connector ${activeWorkflowStep > index ? 'active' : ''}`}></div>}
+                </React.Fragment>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* 6. Role Dashboard */}
-      <section className="role-dashboard-section section-padding section-border-bottom">
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h2 className="section-title">Built for every role in your school</h2>
-          <p className="section-subtitle" style={{ margin: '0 auto' }}>
-            From students tracking progress to teachers managing submissions, to administrators overseeing school performance.
-          </p>
-        </div>
 
-        <div className="role-dashboard-wrapper">
-          <div className="role-sidebar">
-            <div className={`role-tab ${roleTab === 'student' ? 'active' : ''}`} onClick={() => setRoleTab('student')}>S</div>
-            <div className={`role-tab ${roleTab === 'teacher' ? 'active' : ''}`} onClick={() => setRoleTab('teacher')}>T</div>
-            <div className={`role-tab ${roleTab === 'admin' ? 'active' : ''}`} onClick={() => setRoleTab('admin')}>A</div>
-          </div>
-          
-          <div className="role-content-area animate-fade-in" key={roleTab}>
-            <div className="role-content-header">
-              <h3>{roleTab === 'admin' ? 'School Administration Hub' : roleTab === 'teacher' ? 'Teacher Dashboard' : 'Student Progress'}</h3>
-              <p>{roleTab === 'admin' ? 'Overview of all departments and active submissions.' : roleTab === 'teacher' ? 'Manage your classes and review flagged evaluations.' : 'Track your performance across all subjects.'}</p>
-            </div>
-
-            <div className="role-metrics-grid">
-              <div className="metric-card-neo">
-                <h4>{roleTab === 'admin' ? 'Total Students' : roleTab === 'teacher' ? 'Active Students' : 'Assignments Due'}</h4>
-                <div className="metric-value">{roleTab === 'admin' ? '2,847' : roleTab === 'teacher' ? '145' : '3'}</div>
-              </div>
-              <div className="metric-card-neo">
-                <h4>Avg Grade</h4>
-                <div className="metric-value" style={{ color: 'var(--accent-primary)' }}>{roleTab === 'admin' ? '87.3%' : roleTab === 'teacher' ? '82.1%' : '91.4%'}</div>
-              </div>
-              <div className="metric-card-neo">
-                <h4>Submissions</h4>
-                <div className="metric-value">{roleTab === 'admin' ? '12,456' : roleTab === 'teacher' ? '892' : '42'}</div>
-              </div>
-              <div className="metric-card-neo">
-                <h4>Pass Rate</h4>
-                <div className="metric-value">{roleTab === 'admin' ? '94.2%' : roleTab === 'teacher' ? '89.5%' : 'N/A'}</div>
-              </div>
-            </div>
-
-            <div className="role-list-section">
-              <div className="role-list-header">
-                {roleTab === 'student' ? 'Recent Grades' : 'Department Performance'}
-              </div>
-              
-              <div className="role-list-item">
-                <div className="role-list-item-title">
-                  <span>{roleTab === 'student' ? 'AP Calculus Midterm' : 'Mathematics'}</span>
-                  <span>{roleTab === 'student' ? '94%' : '88% AVG'}</span>
-                </div>
-                <div className="progress-bar-container">
-                  <div className="progress-bar-fill" style={{ width: roleTab === 'student' ? '94%' : '88%' }}></div>
-                </div>
-              </div>
-              
-              <div className="role-list-item">
-                <div className="role-list-item-title">
-                  <span>{roleTab === 'student' ? 'Physics Lab 3' : 'Science'}</span>
-                  <span>{roleTab === 'student' ? '89%' : '85% AVG'}</span>
-                </div>
-                <div className="progress-bar-container">
-                  <div className="progress-bar-fill" style={{ width: roleTab === 'student' ? '89%' : '85%' }}></div>
-                </div>
-              </div>
-              
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 7. Standards 2x2 Grid */}
       <section className="features-section section-padding section-border-bottom">
@@ -315,7 +217,7 @@ const Landing = () => {
           Start saving hours on grading and streamline your evaluation process today.
         </p>
         <Link to="/login" className="btn-white">
-          Try AutoEval Now <ArrowRight size={20} />
+          Try ScribScore Now <ArrowRight size={20} />
         </Link>
         
         <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', fontFamily: 'var(--font-mono)' }}>
@@ -331,7 +233,7 @@ const Landing = () => {
           <div className="footer-col">
             <Link to="/" className="footer-logo">
               <Brain size={24} />
-              AutoEval
+              ScribScore
             </Link>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: '250px' }}>
               An open platform to modernize academic assessment and simplify grading.
@@ -365,7 +267,7 @@ const Landing = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} AutoEval Educational Technologies. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} ScribScore Educational Technologies. All rights reserved.</p>
         </div>
       </footer>
     </div>

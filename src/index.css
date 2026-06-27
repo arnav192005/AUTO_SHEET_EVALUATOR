@@ -1,27 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
-  --bg-color: #F5F5F4;
-  --bg-secondary: #FFFFFF;
-  --bg-glass: #FFFFFF;
-  --border-color: #111111;
-  --border-glass: rgba(17, 17, 17, 0.15);
+  --bg-color: #0A0A0A;
+  --bg-secondary: #171717;
+  --bg-glass: rgba(10, 10, 10, 0.65);
+  --border-color: #333333;
+  --border-glass: rgba(255, 255, 255, 0.1);
   
-  --text-primary: #111111;
-  --text-secondary: #555555;
-  --text-tertiary: #888888;
+  --text-primary: #FAFAFA;
+  --text-secondary: #A3A3A3;
+  --text-tertiary: #737373;
   
-  --accent-primary: #D30000; /* Crimson Red */
-  --accent-hover: #A00000;
+  --accent-primary: #FF3333; /* Crimson Red */
+  --accent-hover: #FF6666;
   --accent-glow: transparent;
-  --accent-secondary: #111111;
+  --accent-secondary: #FAFAFA;
   
-  --success: #111111;
-  --success-bg: rgba(17, 17, 17, 0.05);
-  --warning: #111111;
-  --warning-bg: rgba(17, 17, 17, 0.05);
-  --danger: #D30000;
-  --danger-bg: rgba(211, 0, 0, 0.1);
+  --success: #FAFAFA;
+  --success-bg: rgba(255, 255, 255, 0.05);
+  --warning: #FAFAFA;
+  --warning-bg: rgba(255, 255, 255, 0.05);
+  --danger: #FF3333;
+  --danger-bg: rgba(255, 51, 51, 0.1);
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
