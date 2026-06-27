@@ -141,27 +141,18 @@
 
 .activity-table tr:hover td {
   background-color: var(--border-color);
-  color: var(--bg-color);
+  color: #ffffff;
 }
 
 .activity-table tr:hover .font-mono,
-.activity-table tr:hover .text-muted,
-.activity-table tr:hover .badge {
-  color: var(--bg-color);
+.activity-table tr:hover .text-muted {
+  color: #ffffff;
 }
 
 .activity-table tr:hover .badge {
-  border-color: var(--bg-color);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
   background-color: transparent;
-}
-
-.activity-table tr:hover .progress-bar-container {
-  border-color: var(--bg-color);
-}
-
-.activity-table tr:hover .progress-bar {
-  background: var(--bg-color);
-  box-shadow: none;
 }
 
 .activity-table tbody tr:hover {
