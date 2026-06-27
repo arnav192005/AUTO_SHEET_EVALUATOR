@@ -16,17 +16,15 @@ const Login = () => {
 
   return (
     <div className="login-page animate-fade-in">
-      <div className="login-header-top">
-        <h1>ScribScore</h1>
-        <p>System Authentication</p>
-      </div>
-
       <div className="flip-container">
         <input type="checkbox" id="signup_toggle" />
         <div className="form-wrapper">
           {/* Front: Login */}
           <form className="form_front" onSubmit={handleLogin}>
-            <div className="form_details">Login</div>
+            <div className="login-header-inner">
+              <h1>ScribScore</h1>
+              <p>System Authentication</p>
+            </div>
             <input placeholder="Email" className="flip-input" type="email" required />
             <input placeholder="Password" className="flip-input" type="password" required />
             <button type="submit" className="flip-btn" disabled={loading}>
@@ -41,8 +39,11 @@ const Login = () => {
 
           {/* Back: Sign Up */}
           <form className="form_back" onSubmit={(e) => e.preventDefault()}>
-            <div className="form_details">Sign Up</div>
-            <input placeholder="Name" className="flip-input" type="text" required />
+            <div className="login-header-inner">
+              <h1>ScribScore</h1>
+              <p>System Registration</p>
+            </div>
+            <input placeholder="Firstname" className="flip-input" type="text" required />
             <input placeholder="Email" className="flip-input" type="email" required />
             <input placeholder="Password" className="flip-input" type="password" required />
             <button type="submit" className="flip-btn">Register</button>
