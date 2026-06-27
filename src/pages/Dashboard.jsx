@@ -112,7 +112,7 @@ const Dashboard = () => {
                   <td>
                     <div className="progress-bar-container">
                       <div 
-                        className="progress-bar" 
+                        className={`progress-bar progress-${batch.status.toLowerCase().replace(' ', '-')}`} 
                         style={{ 
                           width: `${batch.progress}%`
                         }}
