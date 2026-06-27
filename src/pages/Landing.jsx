@@ -137,19 +137,6 @@ const Landing = () => {
           </div>
           
           <div className="agentic-workflow-wrapper reveal-on-scroll">
-            {/* Terminal Window */}
-            <div className="agentic-terminal animate-fade-in delay-1">
-              <div className="terminal-header">
-                <div className="terminal-dots"><span></span><span></span><span></span></div>
-                <div className="terminal-title">ScribeScore AI Engine</div>
-              </div>
-              <div className="terminal-body typing-container">
-                {activeWorkflowStep === 0 && <p className="typing-text"><span className="term-prompt">&gt;</span> [System] Initializing batch ingest...<br/><span className="term-prompt">&gt;</span> Scanning handwriting features... <span className="term-blink">_</span></p>}
-                {activeWorkflowStep === 1 && <p className="typing-text"><span className="term-prompt">&gt;</span> [Vision Core] Running proprietary OCR...<br/><span className="term-prompt">&gt;</span> Digitizing cursive student logic... <span className="term-blink">_</span></p>}
-                {activeWorkflowStep === 2 && <p className="typing-text"><span className="term-prompt">&gt;</span> [AI Engine] Cross-referencing answer key...<br/><span className="term-prompt">&gt;</span> Awarding partial credit for step 2... <span className="term-blink">_</span></p>}
-                {activeWorkflowStep === 3 && <p className="typing-text"><span className="term-prompt">&gt;</span> [Audit] Flagging anomalies for review...<br/><span className="term-prompt">&gt;</span> Syncing finalized grades to LMS... <span className="term-success">COMPLETE</span></p>}
-              </div>
-            </div>
 
             {/* Visual Nodes */}
             <div className="agentic-nodes-container">
