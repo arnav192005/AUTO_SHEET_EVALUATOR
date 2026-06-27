@@ -19,7 +19,7 @@ const Login = () => {
     <div className="login-page animate-fade-in">
       <div className="login-card">
         <div className="login-header">
-          <h1>AutoEval</h1>
+          <h1>ScribScore</h1>
           <p>System Authentication</p>
         </div>
         
@@ -30,7 +30,7 @@ const Login = () => {
               type="email" 
               id="email" 
               className="login-input" 
-              placeholder="admin@autoeval.edu"
+              placeholder="admin@scribscore.edu"
               required 
             />
           </div>
