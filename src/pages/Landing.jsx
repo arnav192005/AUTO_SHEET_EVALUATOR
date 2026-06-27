@@ -18,9 +18,22 @@ const Landing = () => {
       setActiveWorkflowStep((prev) => (prev + 1) % 4);
     }, 3500); // Change workflow step every 3.5 seconds
 
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.15 });
+    
+    setTimeout(() => {
+      document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+    }, 100);
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       clearInterval(workflowInterval);
+      observer.disconnect();
     };
   }, []);
 
@@ -85,25 +98,25 @@ const Landing = () => {
       {/* 4. Features 3-Column Grid */}
       <section className="features-section section-padding section-border-bottom">
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 className="section-title">Everything you need, <br/>all in one place</h2>
+          <h2 className="section-title reveal-on-scroll">Everything you need, <br/>all in one place</h2>
         </div>
         
         <div className="features-grid-3">
-          <div className="feature-card">
+          <div className="feature-card reveal-on-scroll">
             <div className="feature-icon-wrapper"><Layers size={28} /></div>
             <h3 className="feature-title">Multi-Stage AI Pipeline</h3>
             <p className="feature-desc">Leveraging advanced machine learning, ScribeScore processes raw handwritten answers through specialized OCR and semantic analysis stages for unparalleled accuracy.</p>
             <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
           </div>
           
-          <div className="feature-card">
+          <div className="feature-card reveal-on-scroll">
             <div className="feature-icon-wrapper"><ScanText size={28} /></div>
             <h3 className="feature-title">Handwritten Answer Recognition</h3>
             <p className="feature-desc">Our proprietary computer vision models are trained specifically on student handwriting, effortlessly digitizing and parsing even the most challenging cursive.</p>
             <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
           </div>
 
-          <div className="feature-card">
+          <div className="feature-card reveal-on-scroll">
             <div className="feature-icon-wrapper"><Bot size={28} /></div>
             <h3 className="feature-title">Automated Intelligent Grading</h3>
             <p className="feature-desc">Instantly evaluate exams against your provided answer keys and rubrics, automatically assigning partial credit and identifying logical steps in student responses.</p>
@@ -116,14 +129,14 @@ const Landing = () => {
       <section className="pipeline-section section-padding section-border-bottom">
         <div className="pipeline-grid">
           <div>
-            <h2 className="section-title" style={{ textAlign: 'left' }}>How ScribScore <br/>actually works</h2>
+            <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'left' }}>How ScribScore <br/>actually works</h2>
             <p className="section-subtitle">
               A transparent, 4-step workflow that transforms raw, messy answer sheets into finalized, analytical grade reports.
             </p>
             <Link to="/login" className="btn-primary">Try the Workflow</Link>
           </div>
           
-          <div className="agentic-workflow-wrapper">
+          <div className="agentic-workflow-wrapper reveal-on-scroll">
             {/* Terminal Window */}
             <div className="agentic-terminal animate-fade-in delay-1">
               <div className="terminal-header">
@@ -167,7 +180,7 @@ const Landing = () => {
       {/* 7. Standards 2x2 Grid */}
       <section className="features-section section-padding section-border-bottom">
         <div style={{ textAlign: 'center', marginBottom: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2 className="section-title" style={{ textAlign: 'center', width: '100%' }}>
+          <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center', width: '100%' }}>
             <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Elevating</span> <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>Standards</span>
           </h2>
           <p className="section-subtitle" style={{ margin: '0 auto', color: '#ffffff' }}>Built for scale, precision, and compliance.</p>
@@ -196,7 +209,7 @@ const Landing = () => {
       {/* 9. FAQs */}
       <section className="faq-section section-padding section-border-bottom">
         <div style={{ textAlign: 'center', marginBottom: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2 className="section-title" style={{ textAlign: 'center', width: '100%' }}>
+          <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center', width: '100%' }}>
             <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Got questions?</span><br/>
             <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>We have answers.</span>
           </h2>
