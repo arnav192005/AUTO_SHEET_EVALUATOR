@@ -8,12 +8,18 @@ const Landing = () => {
   const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
 
   React.useEffect(() => {
+    const handleMouseMove = (e) => {
+      document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
+      document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
 
     const workflowInterval = setInterval(() => {
       setActiveWorkflowStep((prev) => (prev + 1) % 4);
     }, 3500); // Change workflow step every 3.5 seconds
 
     return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
       clearInterval(workflowInterval);
     };
   }, []);
@@ -27,6 +33,7 @@ const Landing = () => {
 
   return (
     <div className="landing-container animate-fade-in">
+      <div className="cursor-glow"></div>
       
       {/* 1. Navbar */}
       <nav className="landing-nav">
@@ -159,9 +166,11 @@ const Landing = () => {
 
       {/* 7. Standards 2x2 Grid */}
       <section className="features-section section-padding section-border-bottom">
-        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 className="section-title">Elevating Standards</h2>
-          <p className="section-subtitle" style={{ margin: '0 auto' }}>Built for scale, precision, and compliance.</p>
+        <div style={{ textAlign: 'center', marginBottom: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h2 className="section-title" style={{ textAlign: 'center', width: '100%' }}>
+            <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Elevating</span> <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>Standards</span>
+          </h2>
+          <p className="section-subtitle" style={{ margin: '0 auto', color: '#ffffff' }}>Built for scale, precision, and compliance.</p>
         </div>
 
         <div className="standards-grid">
@@ -220,11 +229,7 @@ const Landing = () => {
           Try ScribScore Now <ArrowRight size={20} />
         </Link>
         
-        <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', fontFamily: 'var(--font-mono)' }}>
-          <span><ShieldCheck size={16} style={{ verticalAlign: 'text-bottom', marginRight: '4px' }}/> FERPA Ready</span>
-          <span><ShieldCheck size={16} style={{ verticalAlign: 'text-bottom', marginRight: '4px' }}/> SOC-2 Compliant</span>
-          <span><Layers size={16} style={{ verticalAlign: 'text-bottom', marginRight: '4px' }}/> Tailored for LMS</span>
-        </div>
+
       </section>
 
       {/* 11. Footer */}
