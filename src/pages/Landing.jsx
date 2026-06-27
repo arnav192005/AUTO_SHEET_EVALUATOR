@@ -195,8 +195,11 @@ const Landing = () => {
 
       {/* 9. FAQs */}
       <section className="faq-section section-padding section-border-bottom">
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h2 className="section-title">Got questions? <br/>We have answers.</h2>
+        <div style={{ textAlign: 'center', marginBottom: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h2 className="section-title" style={{ textAlign: 'center', width: '100%' }}>
+            <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Got questions?</span><br/>
+            <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>We have answers.</span>
+          </h2>
         </div>
         
         <div className="faq-container">

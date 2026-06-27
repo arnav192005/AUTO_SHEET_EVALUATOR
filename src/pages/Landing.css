@@ -615,10 +615,18 @@
 }
 
 .faq-item {
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-glass);
   margin-bottom: 1rem;
-  background: var(--bg-secondary);
-  box-shadow: 4px 4px 0px 0px var(--border-color);
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.faq-item:hover {
+  transform: translateX(10px);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: -10px 0 25px rgba(255, 255, 255, 0.15);
 }
 
 .faq-question {
