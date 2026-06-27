@@ -32,4 +32,4 @@ const Security = () => {
     </InfoLayout>
   );
 };
-export default Security;\n
+export default Security;

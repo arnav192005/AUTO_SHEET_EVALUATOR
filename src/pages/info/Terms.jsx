@@ -18,4 +18,4 @@ const Terms = () => {
     </InfoLayout>
   );
 };
-export default Terms;\n
+export default Terms;

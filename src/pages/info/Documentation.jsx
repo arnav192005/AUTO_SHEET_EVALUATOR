@@ -21,4 +21,4 @@ const Documentation = () => {
     </InfoLayout>
   );
 };
-export default Documentation;\n
+export default Documentation;

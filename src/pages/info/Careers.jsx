@@ -36,4 +36,4 @@ const Careers = () => {
     </InfoLayout>
   );
 };
-export default Careers;\n
+export default Careers;

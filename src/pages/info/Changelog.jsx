@@ -28,4 +28,4 @@ const Changelog = () => {
     </InfoLayout>
   );
 };
-export default Changelog;\n
+export default Changelog;

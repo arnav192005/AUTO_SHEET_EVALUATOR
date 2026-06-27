@@ -22,4 +22,4 @@ const Blog = () => {
     </InfoLayout>
   );
 };
-export default Blog;\n
+export default Blog;

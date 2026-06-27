@@ -337,5 +337,5 @@ base_path = 'src/pages/info'
 for name, content in pages.items():
     file_path = os.path.join(base_path, f'{name}.jsx')
     with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(content.strip() + '\\n')
+        f.write(content.strip() + '\n')
     print(f'Created {file_path}')

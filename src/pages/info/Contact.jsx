@@ -24,4 +24,4 @@ const Contact = () => {
     </InfoLayout>
   );
 };
-export default Contact;\n
+export default Contact;

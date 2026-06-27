@@ -19,4 +19,4 @@ const About = () => {
     </InfoLayout>
   );
 };
-export default About;\n
+export default About;

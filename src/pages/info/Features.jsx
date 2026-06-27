@@ -30,4 +30,4 @@ const Features = () => {
     </InfoLayout>
   );
 };
-export default Features;\n
+export default Features;

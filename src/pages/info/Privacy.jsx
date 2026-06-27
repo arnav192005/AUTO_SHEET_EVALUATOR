@@ -18,4 +18,4 @@ const Privacy = () => {
     </InfoLayout>
   );
 };
-export default Privacy;\n
+export default Privacy;

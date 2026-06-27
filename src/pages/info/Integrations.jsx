@@ -27,4 +27,4 @@ const Integrations = () => {
     </InfoLayout>
   );
 };
-export default Integrations;\n
+export default Integrations;
