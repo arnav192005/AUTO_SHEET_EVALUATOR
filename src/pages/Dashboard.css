@@ -160,7 +160,8 @@
 }
 
 .activity-table tr:hover .progress-bar {
-  background: var(--bg-color) !important;
+  background: var(--bg-color);
+  box-shadow: none;
 }
 
 .activity-table tbody tr:hover {
@@ -177,11 +178,36 @@
   background-color: transparent;
   border: 1px solid var(--border-color);
   overflow: hidden;
+  border-radius: 6px;
 }
 
 .progress-bar {
   height: 100%;
   transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  background: var(--text-primary) !important;
+  background: #39ff14;
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.6), 0 0 20px rgba(57, 255, 20, 0.4);
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite ease-in-out;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }

@@ -114,10 +114,7 @@ const Dashboard = () => {
                       <div 
                         className="progress-bar" 
                         style={{ 
-                          width: `${batch.progress}%`,
-                          background: batch.status === 'Processing' 
-                            ? 'var(--accent-primary)' 
-                            : 'var(--text-primary)'
+                          width: `${batch.progress}%`
                         }}
                       />
                     </div>
