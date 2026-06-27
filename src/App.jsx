@@ -21,6 +21,7 @@ import Contact from './pages/info/Contact';
 import Privacy from './pages/info/Privacy';
 import Terms from './pages/info/Terms';
 import Security from './pages/info/Security';
+import CookieBanner from './components/CookieBanner';
 
 // A simple layout wrapper
 const Layout = ({ children }) => {
@@ -37,6 +38,7 @@ const Layout = ({ children }) => {
 function App() {
   return (
     <HashRouter>
+      <CookieBanner />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
