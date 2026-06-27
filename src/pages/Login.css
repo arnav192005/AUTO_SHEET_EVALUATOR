@@ -163,7 +163,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
+  white-space: nowrap;
   gap: 5px;
 }
 
