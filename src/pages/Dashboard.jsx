@@ -38,8 +38,8 @@ const PieChartCard = ({ title, value, percentage, trend, delay, onClick }) => (
         height: '72px',
         borderRadius: '50%',
         border: '1px solid var(--border-color)',
-        background: `conic-gradient(var(--accent-primary) ${percentage}%, var(--bg-color) 0)`,
-        boxShadow: '4px 4px 0px 0px var(--border-color)',
+        background: `conic-gradient(var(--accent-primary) ${percentage}%, rgba(255, 255, 255, 0.1) 0)`,
+        boxShadow: '4px 4px 0px 0px rgba(0, 0, 0, 0.5)',
         transition: 'transform var(--transition-fast)'
       }}
     />
