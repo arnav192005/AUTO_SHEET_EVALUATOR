@@ -102,17 +102,14 @@ const Dashboard = () => {
                   <td className="text-muted">{batch.date}</td>
                   <td>{batch.total}</td>
                   <td>
-                    <span className={`badge ${
-                      batch.status === 'Completed' ? 'badge-success' : 
-                      batch.status === 'Needs Review' ? 'badge-warning' : 'badge-neutral'
-                    }`}>
+                    <span className={`badge badge-status-${batch.status.toLowerCase().replace(' ', '-')}`}>
                       {batch.status}
                     </span>
                   </td>
                   <td>
                     <div className="progress-bar-container">
                       <div 
-                        className={`progress-bar progress-${batch.status.toLowerCase().replace(' ', '-')}`} 
+                        className="progress-bar" 
                         style={{ 
                           width: `${batch.progress}%`
                         }}

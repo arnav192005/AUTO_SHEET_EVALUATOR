@@ -190,6 +190,10 @@ h1, h2, h3, h4 {
 .badge-danger { background: var(--danger-bg); color: var(--danger); }
 .badge-neutral { background: var(--bg-secondary); color: var(--text-secondary); }
 
+.badge-status-completed { color: #39ff14; border-color: #39ff14; background: rgba(57, 255, 20, 0.1); }
+.badge-status-processing { color: #ffea00; border-color: #ffea00; background: rgba(255, 234, 0, 0.1); }
+.badge-status-needs-review { color: #ff073a; border-color: #ff073a; background: rgba(255, 7, 58, 0.1); }
+
 /* Form Controls */
 .input-field {
   width: 100%;
