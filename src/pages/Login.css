@@ -50,8 +50,8 @@
   transform-style: preserve-3d;
   transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
-  width: 380px;
-  height: 480px;
+  width: 400px;
+  height: 540px;
 }
 
 .flip-container #signup_toggle:checked + .form-wrapper {
@@ -158,6 +158,13 @@
   font-size: 14px;
   color: var(--text-secondary);
   margin-top: 15px;
+  text-align: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 .switch .signup_tog {
