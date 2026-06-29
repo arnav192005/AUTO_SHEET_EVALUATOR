@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2 } from 'lucide-react';
+import Tesseract from 'tesseract.js';
 import './Landing.css';
 
 const Landing = () => {
@@ -9,6 +10,9 @@ const Landing = () => {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [demoResult, setDemoResult] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
+  const [extractedText, setExtractedText] = useState(null);
+  const [ocrProgress, setOcrProgress] = useState(0);
+  const [ocrStatus, setOcrStatus] = useState('');
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -18,9 +22,38 @@ const Landing = () => {
     }
   };
 
-  const runDemoEvaluation = () => {
+  const runDemoEvaluation = async () => {
     if (isEvaluating || demoResult) return;
     setIsEvaluating(true);
+    setExtractedText(null);
+    setOcrProgress(0);
+    setOcrStatus('');
+
+    if (uploadedImageUrl) {
+      try {
+        setOcrStatus('Initializing OCR Engine...');
+        const result = await Tesseract.recognize(
+          uploadedImageUrl,
+          'eng',
+          {
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                setOcrStatus('Extracting text...');
+                setOcrProgress(m.progress);
+              } else {
+                setOcrStatus(m.status);
+              }
+            }
+          }
+        );
+        setExtractedText(result.data.text);
+      } catch (error) {
+        console.error("OCR Error:", error);
+        setExtractedText("Error extracting text.");
+      }
+    }
+
+    setOcrStatus('Applying custom rubric...');
     // Simulate AI processing
     setTimeout(() => {
       setIsEvaluating(false);
@@ -32,13 +65,16 @@ const Landing = () => {
           { name: "Step 3: Final Calculation", status: "partial", points: "+0.5", message: "Minor arithmetic error in the final addition." }
         ]
       });
-    }, 2500);
+    }, uploadedImageUrl ? 1000 : 2500);
   };
   
   const resetDemo = () => {
     setDemoResult(null);
     setIsEvaluating(false);
     setUploadedImageUrl(null);
+    setExtractedText(null);
+    setOcrProgress(0);
+    setOcrStatus('');
   };
 
   React.useEffect(() => {
@@ -207,14 +243,38 @@ const Landing = () => {
               {isEvaluating && (
                 <div className="loading-state">
                   <div className="pulse-ring"></div>
-                  <p>Extracting handwriting...</p>
-                  <p className="delay-text-1">Parsing mathematical structure...</p>
-                  <p className="delay-text-2">Applying custom rubric...</p>
+                  {uploadedImageUrl ? (
+                    <>
+                      <p style={{ fontWeight: '600', color: '#fff' }}>{ocrStatus || 'Starting AI Engine...'}</p>
+                      {ocrProgress > 0 && (
+                        <div className="ocr-progress-container" style={{ width: '80%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div className="ocr-progress-bar" style={{ width: `${ocrProgress * 100}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.2s ease' }}></div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p>Extracting handwriting...</p>
+                      <p className="delay-text-1">Parsing mathematical structure...</p>
+                      <p className="delay-text-2">Applying custom rubric...</p>
+                    </>
+                  )}
                 </div>
               )}
 
               {demoResult && (
                 <div className="result-state animate-fade-in">
+                  {extractedText && (
+                    <div className="extracted-text-box" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '1rem', marginBottom: '0.5rem' }}>
+                      <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem', marginTop: 0 }}>
+                        <ScanText size={16} /> Extracted Text (Raw AI Output)
+                      </h4>
+                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#a0aec0', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
+                        {extractedText}
+                      </pre>
+                    </div>
+                  )}
+
                   <div className="score-banner">
                     <span className="score-label">Final Score</span>
                     <span className="score-value">{demoResult.score}</span>
