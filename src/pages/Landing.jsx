@@ -1,11 +1,35 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus } from 'lucide-react';
+import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2 } from 'lucide-react';
 import './Landing.css';
 
 const Landing = () => {
   const [openFaq, setOpenFaq] = useState(0);
   const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [demoResult, setDemoResult] = useState(null);
+
+  const runDemoEvaluation = () => {
+    if (isEvaluating || demoResult) return;
+    setIsEvaluating(true);
+    // Simulate AI processing
+    setTimeout(() => {
+      setIsEvaluating(false);
+      setDemoResult({
+        score: "4.5 / 5",
+        steps: [
+          { name: "Step 1: Formula Application", status: "correct", points: "+2.0", message: "Correct formula used for quadratic roots." },
+          { name: "Step 2: Value Substitution", status: "correct", points: "+2.0", message: "Values substituted correctly." },
+          { name: "Step 3: Final Calculation", status: "partial", points: "+0.5", message: "Minor arithmetic error in the final addition." }
+        ]
+      });
+    }, 2500);
+  };
+  
+  const resetDemo = () => {
+    setDemoResult(null);
+    setIsEvaluating(false);
+  };
 
   React.useEffect(() => {
     const handleMouseMove = (e) => {
@@ -94,8 +118,113 @@ const Landing = () => {
         
       </header>
 
+      {/* 3. Interactive Demo Playground */}
+      <section className="demo-section section-padding section-border-bottom">
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <h2 className="section-title reveal-on-scroll">Try it Live</h2>
+          <p className="section-subtitle" style={{ margin: '0 auto' }}>Experience the speed and accuracy of ScribScore's AI grading in real-time.</p>
+        </div>
 
-      {/* 4. Features 3-Column Grid */}
+        <div className="demo-grid reveal-on-scroll">
+          {/* Left Panel: Upload/Input */}
+          <div className="demo-panel input-panel">
+            <div className="panel-header">
+              <span className="dot" style={{ background: '#ff5f56' }}></span>
+              <span className="dot" style={{ background: '#ffbd2e' }}></span>
+              <span className="dot" style={{ background: '#27c93f' }}></span>
+              <span className="panel-title">Student Answer Sheet.jpg</span>
+            </div>
+            <div className="panel-body">
+              <div className="mock-upload-area">
+                <div className="math-equation-mock">
+                  <p>Q: Find the roots of $x^2 - 5x + 6 = 0$</p>
+                  <div className="handwriting-mock">
+                    <p>x = [-b ± √(b² - 4ac)] / 2a</p>
+                    <p>x = [5 ± √(25 - 24)] / 2</p>
+                    <p>x = (5 ± 1) / 2</p>
+                    <p className="error-text">x = 3, x = 1</p>
+                  </div>
+                </div>
+                {isEvaluating && <div className="scanning-laser"></div>}
+              </div>
+              <div className="demo-controls">
+                {!demoResult ? (
+                  <button 
+                    className="btn-primary evaluate-btn" 
+                    onClick={runDemoEvaluation}
+                    disabled={isEvaluating}
+                  >
+                    {isEvaluating ? (
+                      <><Loader2 className="animate-spin" size={20} /> Analyzing...</>
+                    ) : (
+                      <><Brain size={20} /> Run AI Evaluation</>
+                    )}
+                  </button>
+                ) : (
+                  <button className="btn-secondary reset-btn" onClick={resetDemo}>
+                    Reset Demo
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel: AI Result */}
+          <div className="demo-panel output-panel">
+             <div className="panel-header">
+              <span className="dot" style={{ background: '#ff5f56' }}></span>
+              <span className="dot" style={{ background: '#ffbd2e' }}></span>
+              <span className="dot" style={{ background: '#27c93f' }}></span>
+              <span className="panel-title">AI Grade Report</span>
+            </div>
+            <div className="panel-body">
+              {!demoResult && !isEvaluating && (
+                <div className="empty-state">
+                  <Upload size={40} style={{ opacity: 0.5, marginBottom: '1rem' }} />
+                  <p>Click 'Run AI Evaluation' to see the magic happen.</p>
+                </div>
+              )}
+
+              {isEvaluating && (
+                <div className="loading-state">
+                  <div className="pulse-ring"></div>
+                  <p>Extracting handwriting...</p>
+                  <p className="delay-text-1">Parsing mathematical structure...</p>
+                  <p className="delay-text-2">Applying custom rubric...</p>
+                </div>
+              )}
+
+              {demoResult && (
+                <div className="result-state animate-fade-in">
+                  <div className="score-banner">
+                    <span className="score-label">Final Score</span>
+                    <span className="score-value">{demoResult.score}</span>
+                  </div>
+                  
+                  <div className="step-feedback-list">
+                    {demoResult.steps.map((step, idx) => (
+                      <div key={idx} className={`step-item ${step.status}`}>
+                        <div className="step-icon">
+                          {step.status === 'correct' ? <CheckCircle2 size={20} color="#27c93f" /> : <XCircle size={20} color="#ffbd2e" />}
+                        </div>
+                        <div className="step-content">
+                          <h4>{step.name} <span className="step-points">{step.points}</span></h4>
+                          <p>{step.message}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="insight-box">
+                    <Bot size={18} />
+                    <p><strong>AI Insight:</strong> The student understands the quadratic formula but made a minor calculation error at the very end (3, 2 are the correct roots). Partial credit awarded.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="features-section section-padding section-border-bottom">
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
           <h2 className="section-title reveal-on-scroll">Everything you need, <br/>all in one place</h2>
