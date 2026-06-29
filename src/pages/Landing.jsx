@@ -419,21 +419,23 @@ const Landing = () => {
                   </div>
 
                   {demoResult.correctAnswer && (
-                    <div className="insight-box" style={{ background: 'rgba(255, 95, 86, 0.1)', border: '1px solid rgba(255, 95, 86, 0.3)', marginTop: '1rem', alignItems: 'flex-start' }}>
-                      <Bot size={18} color="#ff5f56" style={{ flexShrink: 0, marginTop: '4px' }} />
-                      <div style={{ width: '100%', overflow: 'hidden' }}>
-                        <p><strong>Correct Answer:</strong> {demoResult.correctAnswer}</p>
-                        {demoResult.correctAnswerLatex && (
-                          <details style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '8px', border: '1px solid rgba(255, 95, 86, 0.3)' }}>
-                            <summary style={{ padding: '1rem', cursor: 'pointer', fontWeight: '600', color: '#ff908b', outline: 'none', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <Layers size={18} /> View Step-by-Step Math
-                            </summary>
-                            <div style={{ padding: '1.25rem 1rem', borderTop: '1px solid rgba(255, 95, 86, 0.2)', overflowX: 'auto', fontSize: '1em' }}>
-                              <div dangerouslySetInnerHTML={{ __html: katex.renderToString(demoResult.correctAnswerLatex, { displayMode: true, throwOnError: false }) }} />
-                            </div>
-                          </details>
-                        )}
+                    <div className="insight-box" style={{ background: 'rgba(255, 95, 86, 0.1)', border: '1px solid rgba(255, 95, 86, 0.3)', marginTop: '1rem', flexDirection: 'column', alignItems: 'stretch', gap: 0 }}>
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                        <Bot size={18} color="#ff5f56" style={{ flexShrink: 0, marginTop: '4px' }} />
+                        <div style={{ width: '100%', overflow: 'hidden' }}>
+                          <p><strong>Correct Answer:</strong> {demoResult.correctAnswer}</p>
+                        </div>
                       </div>
+                      {demoResult.correctAnswerLatex && (
+                        <details style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '8px', border: '1px solid rgba(255, 95, 86, 0.3)' }}>
+                          <summary style={{ padding: '1rem', cursor: 'pointer', fontWeight: '600', color: '#ff908b', outline: 'none', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <Layers size={18} /> View Step-by-Step Math
+                          </summary>
+                          <div style={{ padding: '1.25rem 1rem', borderTop: '1px solid rgba(255, 95, 86, 0.2)', overflowX: 'auto', fontSize: '1em' }}>
+                            <div dangerouslySetInnerHTML={{ __html: katex.renderToString(demoResult.correctAnswerLatex, { displayMode: true, throwOnError: false }) }} />
+                          </div>
+                        </details>
+                      )}
                     </div>
                   )}
 
