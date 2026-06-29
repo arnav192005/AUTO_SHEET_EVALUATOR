@@ -170,6 +170,13 @@ const Landing = () => {
     };
   }, []);
 
+  const faqs = [
+    { q: "Does it support regional boards like CBSE or ICSE?", a: "Yes, ScribScore can be fully customized to align with specific board marking schemes and guidelines." },
+    { q: "How accurate is the handwriting OCR?", a: "Our Multimodal OCR Parse model achieves over 98% accuracy on standard cursive and print handwriting." },
+    { q: "Can it grade step-by-step math derivations?", a: "Absolutely. The semantic evaluation system awards partial credit for correct mathematical steps even if the final answer is wrong." },
+    { q: "Is the student data secure?", a: "ScribScore is built with privacy by design. We are SOC-2 compliant and FERPA ready." }
+  ];
+
   return (
     <div className="landing-container animate-fade-in">
       <div className="cursor-glow"></div>
