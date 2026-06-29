@@ -66,10 +66,10 @@ const Landing = () => {
             reader.readAsDataURL(uploadedFile);
           });
           
-          setOcrStatus('Sending image to Gemini Flash...');
+          setOcrStatus('Sending image to Gemini 2.5 Flash...');
           setOcrProgress(0.5);
 
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiApiKey}`, {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
