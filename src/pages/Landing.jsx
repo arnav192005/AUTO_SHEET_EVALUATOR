@@ -54,7 +54,7 @@ const Landing = () => {
     if (uploadedFile) {
       if (geminiApiKey) {
         try {
-          setOcrStatus('Initializing Gemini AI...');
+          setOcrStatus('Performing OCR Scan & Analysis via Gemini...');
           setOcrProgress(0.2);
           
           // Convert file to base64
@@ -115,7 +115,7 @@ const Landing = () => {
           setExtractedText(`Failed to connect to Gemini API: ${error.message}`);
         }
       } else {
-        setOcrStatus('Initializing Multimodal Engine...');
+        setOcrStatus('Performing OCR Scan (Mock Engine)...');
         
         for (let i = 1; i <= 10; i++) {
           await new Promise(r => setTimeout(r, 150));
@@ -142,7 +142,7 @@ const Landing = () => {
       }
     }
 
-    setOcrStatus('Applying custom rubric...');
+    setOcrStatus('Performing OCR Scan & Applying rubric...');
     setTimeout(() => {
       setIsEvaluating(false);
       setDemoResult({
@@ -278,40 +278,48 @@ const Landing = () => {
               <span className="dot" style={{ background: '#ff5f56' }}></span>
               <span className="dot" style={{ background: '#ffbd2e' }}></span>
               <span className="dot" style={{ background: '#27c93f' }}></span>
-              <span className="panel-title">Student Answer Sheet.jpg</span>
+              <span className="panel-title">{uploadedFile ? uploadedFile.name : 'Student Answer Sheet.jpg'}</span>
             </div>
             <div className="panel-body">
               <div className="mock-upload-area" style={{ padding: uploadedImageUrl ? '0' : '2rem' }}>
                   {uploadedImageUrl ? (
-                    <div style={{ position: 'relative', display: 'inline-block' }}>
-                      <img 
-                        src={uploadedImageUrl} 
-                        alt="Uploaded math" 
-                        style={{ 
-                          maxWidth: '100%', 
-                          maxHeight: '400px', 
-                          borderRadius: '8px', 
-                          transform: `rotate(${imageRotation}deg)`, 
-                          transition: 'transform 0.3s ease' 
-                        }} 
-                      />
-                      <button 
-                        onClick={() => setImageRotation(prev => prev + 90)}
-                        className="btn-secondary"
-                        style={{ 
-                          position: 'absolute', 
-                          top: '10px', 
-                          right: '10px', 
-                          padding: '0.4rem 0.8rem',
-                          margin: 0,
-                          fontSize: '0.8rem',
-                          background: 'rgba(10, 10, 15, 0.8)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)'
-                        }}
-                      >
-                        ↻ Rotate
-                      </button>
-                    </div>
+                    uploadedFile && !uploadedFile.type.startsWith('image/') ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', minHeight: '200px', width: '100%' }}>
+                        <FileText size={48} color="#a0aec0" style={{ marginBottom: '1rem' }} />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#a0aec0', wordBreak: 'break-all', textAlign: 'center' }}>{uploadedFile.name}</span>
+                        <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '500' }}>Document Ready for OCR Scan</p>
+                      </div>
+                    ) : (
+                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <img 
+                          src={uploadedImageUrl} 
+                          alt="Uploaded math" 
+                          style={{ 
+                            maxWidth: '100%', 
+                            maxHeight: '400px', 
+                            borderRadius: '8px', 
+                            transform: `rotate(${imageRotation}deg)`, 
+                            transition: 'transform 0.3s ease' 
+                          }} 
+                        />
+                        <button 
+                          onClick={() => setImageRotation(prev => prev + 90)}
+                          className="btn-secondary"
+                          style={{ 
+                            position: 'absolute', 
+                            top: '10px', 
+                            right: '10px', 
+                            padding: '0.4rem 0.8rem',
+                            margin: 0,
+                            fontSize: '0.8rem',
+                            background: 'rgba(10, 10, 15, 0.8)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)'
+                          }}
+                        >
+                          ↻ Rotate
+                        </button>
+                      </div>
+                    )
                   ) : (
                   <div className="math-equation-mock">
                     <p>Q: Find the roots of $x^2 - 5x + 6 = 0$</p>
@@ -324,8 +332,8 @@ const Landing = () => {
               <div className="demo-controls" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', margin: 0 }}>
                   <Upload size={18} />
-                  Upload Photo
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} disabled={isEvaluating} />
+                  Upload Document
+                  <input type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" style={{ display: 'none' }} onChange={handleFileUpload} disabled={isEvaluating} />
                 </label>
                 {!demoResult ? (
                   <button 
