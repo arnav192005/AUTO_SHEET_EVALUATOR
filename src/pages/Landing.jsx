@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2 } from 'lucide-react';
-import Tesseract from 'tesseract.js';
 import './Landing.css';
 
 const Landing = () => {
@@ -13,10 +12,14 @@ const Landing = () => {
   const [extractedText, setExtractedText] = useState(null);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrStatus, setOcrStatus] = useState('');
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('geminiApiKey') || import.meta.env.VITE_GEMINI_API_KEY || '');
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setUploadedFile(file);
       setUploadedImageUrl(URL.createObjectURL(file));
       setDemoResult(null);
     }
@@ -29,32 +32,74 @@ const Landing = () => {
     setOcrProgress(0);
     setOcrStatus('');
 
-    if (uploadedImageUrl) {
-      try {
-        setOcrStatus('Initializing OCR Engine...');
-        const result = await Tesseract.recognize(
-          uploadedImageUrl,
-          'eng',
-          {
-            logger: m => {
-              if (m.status === 'recognizing text') {
-                setOcrStatus('Extracting text...');
-                setOcrProgress(m.progress);
-              } else {
-                setOcrStatus(m.status);
-              }
-            }
+    if (uploadedFile) {
+      if (geminiApiKey) {
+        try {
+          setOcrStatus('Initializing Gemini AI...');
+          setOcrProgress(0.2);
+          
+          // Convert file to base64
+          const base64String = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(uploadedFile);
+          });
+          
+          setOcrStatus('Sending image to Gemini 1.5 Flash...');
+          setOcrProgress(0.5);
+
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: "Extract all handwritten text and mathematical equations exactly as written from this image. Format the mathematical steps clearly." },
+                  { inline_data: { mime_type: uploadedFile.type, data: base64String } }
+                ]
+              }]
+            })
+          });
+
+          const data = await response.json();
+          setOcrProgress(0.9);
+          
+          if (data.error) {
+            setExtractedText(`Error from Gemini API: ${data.error.message}`);
+          } else {
+            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No text extracted.';
+            setExtractedText(aiText);
           }
-        );
-        setExtractedText(result.data.text);
-      } catch (error) {
-        console.error("OCR Error:", error);
-        setExtractedText("Error extracting text.");
+        } catch (error) {
+          console.error("Gemini API Error:", error);
+          setExtractedText(`Failed to connect to Gemini API: ${error.message}`);
+        }
+      } else {
+        // Fallback: Simulate highly advanced multimodal AI parsing
+        setOcrStatus('Initializing Multimodal Engine...');
+        
+        // Simulate progress bar filling up
+        for (let i = 1; i <= 10; i++) {
+          await new Promise(r => setTimeout(r, 150));
+          setOcrProgress(i / 10);
+          if (i === 4) setOcrStatus('Detecting handwriting orientation...');
+          if (i === 7) setOcrStatus('Extracting mathematical syntax...');
+        }
+
+        setExtractedText(`[MATH_BLOCK_DETECTED]
+Equation: x^2 - 5x + 6 = 0
+Method: Quadratic Formula
+User_Input:
+  Step 1: x = [-b ± √(b² - 4ac)] / 2a
+  Step 2: x = [5 ± √(25 - 24)] / 2
+  Step 3: x = (5 ± 1) / 2
+  Final: x = 3, x = 1 (Correction noted: actually x=3, x=2)
+[END_BLOCK]`);
       }
     }
 
     setOcrStatus('Applying custom rubric...');
-    // Simulate AI processing
+    // Simulate AI grading
     setTimeout(() => {
       setIsEvaluating(false);
       setDemoResult({
@@ -65,7 +110,7 @@ const Landing = () => {
           { name: "Step 3: Final Calculation", status: "partial", points: "+0.5", message: "Minor arithmetic error in the final addition." }
         ]
       });
-    }, uploadedImageUrl ? 1000 : 2500);
+    }, 1500);
   };
   
   const resetDemo = () => {
@@ -167,9 +212,33 @@ const Landing = () => {
       {/* 3. Interactive Demo Playground */}
       <section className="demo-section section-padding section-border-bottom">
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h2 className="section-title reveal-on-scroll">Try it Live</h2>
+          <h2 className="section-title reveal-on-scroll" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            Try it Live
+            <button className="btn-icon" onClick={() => setShowSettings(!showSettings)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }} title="API Settings">
+              <Settings size={28} />
+            </button>
+          </h2>
           <p className="section-subtitle" style={{ margin: '0 auto' }}>Experience the speed and accuracy of ScribScore's AI grading in real-time.</p>
         </div>
+
+        {showSettings && (
+          <div className="demo-settings animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto 2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid var(--border-glass)', textAlign: 'left' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings size={18} /> Gemini API Configuration</h3>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Enter your Gemini API key to enable real AI OCR. Without this, the demo runs in a simulated fallback mode.</p>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input 
+                type="password" 
+                placeholder="AIzaSy..."
+                value={geminiApiKey}
+                onChange={(e) => {
+                  setGeminiApiKey(e.target.value);
+                  localStorage.setItem('geminiApiKey', e.target.value);
+                }}
+                style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-glass)', background: 'rgba(255,255,255,0.05)', color: 'white', fontFamily: 'var(--font-mono)' }}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="demo-grid reveal-on-scroll">
           {/* Left Panel: Upload/Input */}
