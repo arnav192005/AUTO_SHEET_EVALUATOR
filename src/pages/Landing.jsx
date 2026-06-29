@@ -84,8 +84,18 @@ const Landing = () => {
             })
           });
 
-          if (!response.ok) throw new Error('API Error');
-          
+          if (!response.ok) {
+            let errMsg = 'API Error';
+            try {
+              const errData = await response.json();
+              if (errData.error && errData.error.message) {
+                errMsg = errData.error.message;
+              }
+            } catch (e) {
+              errMsg = response.statusText;
+            }
+            throw new Error(errMsg);
+          }
           const data = await response.json();
           const aiText = data.candidates[0].content.parts[0].text;
           
@@ -110,11 +120,15 @@ const Landing = () => {
           } catch (e) {
              console.error(e);
              setExtractedText(`Failed to parse AI response: ${aiText}`);
+             setIsEvaluating(false);
+             return;
           }
 
         } catch (error) {
           console.error(error);
           setExtractedText(`Failed to connect to Gemini API: ${error.message}`);
+          setIsEvaluating(false);
+          return;
         }
       } else {
         setOcrStatus('API Key Missing! Using Mock Engine...');
