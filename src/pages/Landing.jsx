@@ -75,7 +75,7 @@ const Landing = () => {
             body: JSON.stringify({
               contents: [{
                 parts: [
-                  { text: "Extract all handwritten text and mathematical equations from this image exactly as written. Then, grade the work. Return the result strictly as a JSON object with this exact structure: { \"extractedText\": \"string\", \"score\": \"X.X / 5\", \"steps\": [ { \"name\": \"Step 1\", \"status\": \"correct/incorrect/partial\", \"points\": \"+X.X\", \"message\": \"Friendly, simple explanation of what was right or wrong\" } ], \"correctAnswer\": \"A very friendly, encouraging, and easy-to-understand text explanation of the correct answer and where they went wrong, written in simple conversational language that a student can easily understand.\", \"correctAnswerLatex\": \"Pure LaTeX string containing the step-by-step correct mathematical solution, ONLY IF the student made a mistake. Omit if perfect.\", \"insight\": \"Encouraging summary of their overall performance and areas to improve.\" }" },
+                  { text: "Extract all handwritten text and mathematical equations from this image exactly as written. Then, grade the work. Return the result strictly as a JSON object with this exact structure: { \"extractedText\": \"string\", \"score\": \"X.X / 5\", \"steps\": [ { \"name\": \"Step 1\", \"status\": \"correct/incorrect/partial\", \"points\": \"+X.X\", \"message\": \"Friendly, simple explanation of what was right or wrong\" } ], \"correctAnswer\": \"A very friendly, encouraging, and easy-to-understand text explanation of the correct answer and where they went wrong, written in simple conversational language that a student can easily understand.\", \"correctAnswerLatex\": \"Pure LaTeX string containing the step-by-step correct mathematical solution, ONLY IF the student made a mistake. Omit if perfect. IMPORTANT: You MUST double-escape all backslashes so the JSON is valid. For example, use \\\\begin{aligned} instead of \\begin{aligned}, and \\\\\\\\ instead of \\\\.\", \"insight\": \"Encouraging summary of their overall performance and areas to improve.\" }" },
                   { inline_data: { mime_type: uploadedFile.type, data: base64String } }
                 ]
               }]
@@ -134,7 +134,7 @@ const Landing = () => {
               { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "You knew exactly what to do next (setting factors to zero) even if the previous steps had errors. Good logic!" }
             ],
             correctAnswer: "Hey there! It looks like you tried to use the middle-term splitting method, which is a great approach. However, the equation x² - x + 6 = 0 actually doesn't have any real roots. If we check the discriminant (b² - 4ac), we get a negative number (-23). This means you can't factor it using normal real numbers. Also, remember that when grouping, the terms inside the brackets MUST be identical!",
-            correctAnswerLatex: "\\begin{aligned} x^2 - x + 6 &= 0 \\\\ b^2 - 4ac &= (-1)^2 - 4(1)(6) \\\\ &= 1 - 24 \\\\ &= -23 \\\\ &\\text{Since discriminant < 0, there are no real roots.} \\end{aligned}",
+            correctAnswerLatex: String.raw`\begin{aligned} x^2 - x + 6 &= 0 \\ b^2 - 4ac &= (-1)^2 - 4(1)(6) \\ &= 1 - 24 \\ &= -23 \end{aligned}` + "\n\nSince discriminant < 0, there are no real roots.",
             insight: "You have the right idea about the steps for factorization, but make sure to double-check your initial equation and remember the rules for grouping. Keep practicing!"
           });
         }, 1500);
@@ -153,7 +153,7 @@ const Landing = () => {
           { name: "Step 3: Calculation", status: "partial", points: "+1.0", message: "Minor arithmetic error in final square root simplification." }
         ],
         correctAnswer: "The student made a slight calculation error at the end. The square root of 25 is 5, not 4.",
-        correctAnswerLatex: "\\begin{aligned} x &= \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\\\ x &= \\frac{5 \\pm \\sqrt{25 - 24}}{2} \\\\ x &= \\frac{5 \\pm \\sqrt{1}}{2} \\\\ x &= \\frac{5 \\pm 1}{2} \\\\ x &= 3 \\text{ or } x = 2 \\end{aligned}",
+        correctAnswerLatex: String.raw`\begin{aligned} x &= \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \\ x &= \frac{5 \pm \sqrt{25 - 24}}{2} \\ x &= \frac{5 \pm \sqrt{1}}{2} \\ x &= \frac{5 \pm 1}{2} \\ x &= 3 \text{ or } x = 2 \end{aligned}`,
         insight: "The student has a strong grasp of the fundamental concepts but needs to double-check their final arithmetic simplifications."
       });
     }, 1500);
