@@ -54,7 +54,7 @@ const Landing = () => {
             body: JSON.stringify({
               contents: [{
                 parts: [
-                  { text: "Extract all handwritten text and mathematical equations exactly as written from this image. Format the mathematical steps clearly." },
+                  { text: "Extract all handwritten text and mathematical equations from this image exactly as written. Then, grade the work. Return the result strictly as a JSON object with this exact structure: { \"extractedText\": \"string (the raw text)\", \"score\": \"string (e.g. 'X / 5')\", \"steps\": [ { \"name\": \"Step Name\", \"status\": \"correct\" | \"incorrect\" | \"partial\", \"points\": \"+X\", \"message\": \"Brief comment\" } ], \"correctAnswer\": \"String explaining the correct final answer and how to get there. Only include this if the student made a mistake.\" }" },
                   { inline_data: { mime_type: uploadedFile.type, data: base64String } }
                 ]
               }]
@@ -67,8 +67,26 @@ const Landing = () => {
           if (data.error) {
             setExtractedText(`Error from Gemini API: ${data.error.message}`);
           } else {
-            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No text extracted.';
-            setExtractedText(aiText);
+            let aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            aiText = aiText.replace(/```json\n?|\n?```/g, '').trim();
+            try {
+               const parsed = JSON.parse(aiText);
+               setExtractedText(parsed.extractedText);
+               
+               setTimeout(() => {
+                 setIsEvaluating(false);
+                 setDemoResult({
+                   score: parsed.score,
+                   steps: parsed.steps,
+                   correctAnswer: parsed.correctAnswer,
+                   insight: parsed.score.includes('5 / 5') ? 'Perfect score! The student has demonstrated a complete understanding.' : 'The student made some mistakes. Review the steps and the correct answer below.'
+                 });
+               }, 500);
+               return; // Exit early to skip the mock grading
+            } catch (e) {
+               console.error(e);
+               setExtractedText(`Failed to parse AI response: ${aiText}`);
+            }
           }
         } catch (error) {
           console.error("Gemini API Error:", error);
@@ -87,17 +105,36 @@ const Landing = () => {
         }
 
         setExtractedText(`[MATH_BLOCK_DETECTED]
-Equation: x^2 - 5x + 6 = 0
-Method: Quadratic Formula
+Equation: 2x^2 - x - 6 = 0
+Method: Factorization
 User_Input:
-  Step 1: x = [-b ± √(b² - 4ac)] / 2a
-  Step 2: x = [5 ± √(25 - 24)] / 2
-  Step 3: x = (5 ± 1) / 2
-  Final: x = 3, x = 1 (Correction noted: actually x=3, x=2)
+  Step 1: 2x^2 - 4x + 3x - 6 = 0
+  Step 2: 2x(x - 2) + 3(x - 2) = 0
+  Step 3: (2x + 3)(x - 2) = 0
+  Step 4: x = -3/2, x = 2
+  Final: x = -2 (Correction noted: actually x=-1.5, x=2)
 [END_BLOCK]`);
+        
+        setOcrStatus('Applying custom rubric...');
+        setTimeout(() => {
+          setIsEvaluating(false);
+          setDemoResult({
+            score: "4.0 / 5",
+            steps: [
+              { name: "Step 1: Factor Splitting", status: "correct", points: "+1.5", message: "Correctly split middle term." },
+              { name: "Step 2: Grouping", status: "correct", points: "+1.5", message: "Correctly factored by grouping." },
+              { name: "Step 3: Finding Roots", status: "correct", points: "+1.0", message: "Correctly set factors to zero." },
+              { name: "Step 4: Final Answer", status: "incorrect", points: "+0.0", message: "Wrote x = -2 instead of x = 2 at the very end." }
+            ],
+            correctAnswer: "The roots of (2x+3)(x-2)=0 are x = -3/2 and x = 2. The student incorrectly wrote x = -2 in the final line.",
+            insight: "The student understands factorization perfectly but made a careless copying error at the very last step. Partial credit awarded."
+          });
+        }, 1500);
+        return;
       }
     }
 
+    // Default simulation for non-upload clicks
     setOcrStatus('Applying custom rubric...');
     // Simulate AI grading
     setTimeout(() => {
@@ -363,9 +400,16 @@ User_Input:
                     ))}
                   </div>
 
-                  <div className="insight-box">
+                  {demoResult.correctAnswer && (
+                    <div className="insight-box" style={{ background: 'rgba(255, 95, 86, 0.1)', border: '1px solid rgba(255, 95, 86, 0.3)', marginTop: '1rem' }}>
+                      <Bot size={18} color="#ff5f56" />
+                      <p><strong>Correct Answer:</strong> {demoResult.correctAnswer}</p>
+                    </div>
+                  )}
+
+                  <div className="insight-box" style={{ marginTop: '1rem' }}>
                     <Bot size={18} />
-                    <p><strong>AI Insight:</strong> The student understands the quadratic formula but made a minor calculation error at the very end (3, 2 are the correct roots). Partial credit awarded.</p>
+                    <p><strong>AI Insight:</strong> {demoResult.insight || 'The student understands the basic concepts but made an error. Partial credit awarded.'}</p>
                   </div>
                 </div>
               )}
