@@ -105,11 +105,11 @@ const Landing = () => {
         }
 
         setExtractedText(`[MATH_BLOCK_DETECTED]
-Equation: 2x^2 - x - 6 = 0
+Equation: x^2 - x + 6 = 0
 Method: Factorization
 User_Input:
-  Step 1: 2x^2 - 4x + 3x - 6 = 0
-  Step 2: 2x(x - 2) + 3(x - 2) = 0
+  Step 1: 2x^2 - 4x + 3x + 6 = 0
+  Step 2: 2x(x - 2) + 3(x + 2) = 0
   Step 3: (2x + 3)(x - 2) = 0
   Step 4: x = -3/2, x = 2
   Final: x = -2 (Correction noted: actually x=-1.5, x=2)
@@ -119,15 +119,15 @@ User_Input:
         setTimeout(() => {
           setIsEvaluating(false);
           setDemoResult({
-            score: "4.0 / 5",
+            score: "1.0 / 5",
             steps: [
-              { name: "Step 1: Factor Splitting", status: "correct", points: "+1.5", message: "Correctly split middle term." },
-              { name: "Step 2: Grouping", status: "correct", points: "+1.5", message: "Correctly factored by grouping." },
-              { name: "Step 3: Finding Roots", status: "correct", points: "+1.0", message: "Correctly set factors to zero." },
-              { name: "Step 4: Final Answer", status: "incorrect", points: "+0.0", message: "Wrote x = -2 instead of x = 2 at the very end." }
+              { name: "Step 1: Question Interpretation", status: "incorrect", points: "+0.0", message: "Wrote x^2 - x + 6 = 0 instead of standard form, and expanded incorrectly." },
+              { name: "Step 2: Factor Splitting", status: "incorrect", points: "+0.0", message: "Splitting does not match the original equation (sign error)." },
+              { name: "Step 3: Grouping", status: "incorrect", points: "+0.0", message: "Grouping is mathematically invalid (x-2 and x+2 don't match)." },
+              { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "Carried forward incorrect factors to find roots." }
             ],
-            correctAnswer: "The roots of (2x+3)(x-2)=0 are x = -3/2 and x = 2. The student incorrectly wrote x = -2 in the final line.",
-            insight: "The student understands factorization perfectly but made a careless copying error at the very last step. Partial credit awarded."
+            correctAnswer: "The equation x^2 - x + 6 = 0 has no real roots (discriminant is negative). The student's factorization steps are mathematically invalid due to multiple sign errors.",
+            insight: "The student attempted factorization but made critical sign errors in the very first step, leading to an invalid grouping. Heavy marks deducted."
           });
         }, 1500);
         return;
