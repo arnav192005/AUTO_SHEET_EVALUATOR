@@ -75,7 +75,7 @@ const Landing = () => {
             body: JSON.stringify({
               contents: [{
                 parts: [
-                  { text: "Extract all handwritten text and mathematical equations from this image exactly as written. Then, grade the work. Return the result strictly as a JSON object with this exact structure: { \"extractedText\": \"string\", \"score\": \"X.X / 5\", \"steps\": [ { \"name\": \"Step 1\", \"status\": \"correct/incorrect/partial\", \"points\": \"+X.X\", \"message\": \"Friendly, simple explanation of what was right or wrong\" } ], \"correctAnswer\": \"A very friendly, encouraging, and easy-to-understand text explanation of the correct answer and where they went wrong, written in simple conversational language that a student can easily understand.\", \"correctAnswerLatex\": \"Pure LaTeX string containing the step-by-step correct mathematical solution, ONLY IF the student made a mistake. Omit if perfect. IMPORTANT: You MUST double-escape all backslashes so the JSON is valid. For example, use \\\\begin{aligned} instead of \\begin{aligned}, and \\\\\\\\ instead of \\\\.\", \"insight\": \"Encouraging summary of their overall performance and areas to improve.\" }" },
+                  { text: "Extract all text and content from this document/image. If it's a math problem, grade the work step-by-step. If it's an essay or text assignment, evaluate its quality, grammar, and arguments. Return the result strictly as a JSON object with this exact structure: { \"extractedText\": \"string\", \"score\": \"X.X / 5\", \"steps\": [ { \"name\": \"Criterion 1 or Step 1\", \"status\": \"correct/incorrect/partial\", \"points\": \"+X.X\", \"message\": \"Friendly, simple explanation of what was right or wrong\" } ], \"correctAnswer\": \"A friendly explanation of the ideal answer or improvements, written in simple conversational language.\", \"correctAnswerLatex\": \"Pure LaTeX string containing the step-by-step correct mathematical solution ONLY IF it's a math problem and the student made a mistake. Otherwise, leave empty. IMPORTANT: You MUST double-escape all backslashes so the JSON is valid. For example, use \\\\begin{aligned} instead of \\begin{aligned}, and \\\\\\\\ instead of \\\\.\", \"insight\": \"Encouraging summary of their overall performance.\" }" },
                   { inline_data: { mime_type: uploadedFile.type, data: base64String } }
                 ]
               }]
@@ -125,18 +125,34 @@ const Landing = () => {
         setOcrStatus('Applying custom rubric...');
         setTimeout(() => {
           setIsEvaluating(false);
-          setDemoResult({
-            score: "1.0 / 5",
-            steps: [
-              { name: "Step 1: Equation Setup", status: "incorrect", points: "+0.0", message: "You changed the original x² to 2x². Be careful to copy the question exactly!" },
-              { name: "Step 2: Factor Splitting", status: "incorrect", points: "+0.0", message: "Splitting -x into -4x + 3x was a clever idea, but since the first term was wrong, it throws off the math." },
-              { name: "Step 3: Grouping", status: "incorrect", points: "+0.0", message: "Oops! You can only group terms if the brackets match exactly. (x-2) and (x+2) are different, so we can't combine them." },
-              { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "You knew exactly what to do next (setting factors to zero) even if the previous steps had errors. Good logic!" }
-            ],
-            correctAnswer: "Hey there! It looks like you tried to use the middle-term splitting method, which is a great approach. However, the equation x² - x + 6 = 0 actually doesn't have any real roots. If we check the discriminant (b² - 4ac), we get a negative number (-23). This means you can't factor it using normal real numbers. Also, remember that when grouping, the terms inside the brackets MUST be identical!",
-            correctAnswerLatex: String.raw`\begin{aligned} &\text{Step 1: Write standard form} \\ &ax^2 + bx + c = 0 \Rightarrow a=1, b=-1, c=6 \\ \\ &\text{Step 2: Find Discriminant } (D) \\ &D = b^2 - 4ac \\ &D = (-1)^2 - 4(1)(6) \\ &D = 1 - 24 = -23 \\ \\ &\text{Step 3: Conclusion} \\ &\text{Since } D < 0 \text{, no real roots exist.} \end{aligned}`,
-            insight: "You have the right idea about the steps for factorization, but make sure to double-check your initial equation and remember the rules for grouping. Keep practicing!"
-          });
+          const isDoc = uploadedFile && !uploadedFile.type.startsWith('image/');
+          if (isDoc) {
+            setDemoResult({
+              extractedText: "The American Revolution was a colonial revolt that took place between 1765 and 1783. The American Patriots in the Thirteen Colonies won independence from Great Britain...",
+              score: "4.0 / 5",
+              steps: [
+                { name: "Historical Accuracy", status: "correct", points: "+2.0", message: "Great job! The dates and main events are accurate." },
+                { name: "Sentence Structure", status: "correct", points: "+1.0", message: "Sentences flow well and are easy to read." },
+                { name: "Depth of Detail", status: "partial", points: "+1.0", message: "Good start, but it would be stronger if you mentioned the specific causes of the revolt." }
+              ],
+              correctAnswer: "To get full points, try adding a sentence or two explaining WHY the revolt happened. Discussing the Stamp Act or the Boston Tea Party would make your answer much more comprehensive!",
+              correctAnswerLatex: "",
+              insight: "You have a solid understanding of the historical timeline. Just try to add a bit more detail about the causes next time!"
+            });
+          } else {
+            setDemoResult({
+              score: "1.0 / 5",
+              steps: [
+                { name: "Step 1: Equation Setup", status: "incorrect", points: "+0.0", message: "You changed the original x² to 2x². Be careful to copy the question exactly!" },
+                { name: "Step 2: Factor Splitting", status: "incorrect", points: "+0.0", message: "Splitting -x into -4x + 3x was a clever idea, but since the first term was wrong, it throws off the math." },
+                { name: "Step 3: Grouping", status: "incorrect", points: "+0.0", message: "Oops! You can only group terms if the brackets match exactly. (x-2) and (x+2) are different, so we can't combine them." },
+                { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "You knew exactly what to do next (setting factors to zero) even if the previous steps had errors. Good logic!" }
+              ],
+              correctAnswer: "Hey there! It looks like you tried to use the middle-term splitting method, which is a great approach. However, the equation x² - x + 6 = 0 actually doesn't have any real roots. If we check the discriminant (b² - 4ac), we get a negative number (-23). This means you can't factor it using normal real numbers. Also, remember that when grouping, the terms inside the brackets MUST be identical!",
+              correctAnswerLatex: String.raw`\begin{aligned} &\text{Step 1: Write standard form} \\ &ax^2 + bx + c = 0 \Rightarrow a=1, b=-1, c=6 \\ \\ &\text{Step 2: Find Discriminant } (D) \\ &D = b^2 - 4ac \\ &D = (-1)^2 - 4(1)(6) \\ &D = 1 - 24 = -23 \\ \\ &\text{Step 3: Conclusion} \\ &\text{Since } D < 0 \text{, no real roots exist.} \end{aligned}`,
+              insight: "You have the right idea about the steps for factorization, but make sure to double-check your initial equation and remember the rules for grouping. Keep practicing!"
+            });
+          }
         }, 1500);
         return;
       }
