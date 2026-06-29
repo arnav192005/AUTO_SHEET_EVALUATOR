@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2 } from 'lucide-react';
+import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2, AlertCircle } from 'lucide-react';
+import { BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 import './Landing.css';
 
 const Landing = () => {
@@ -54,7 +56,7 @@ const Landing = () => {
             body: JSON.stringify({
               contents: [{
                 parts: [
-                  { text: "Extract all handwritten text and mathematical equations from this image exactly as written. Then, grade the work. Return the result strictly as a JSON object with this exact structure: { \"extractedText\": \"string (the raw text)\", \"score\": \"string (e.g. 'X / 5')\", \"steps\": [ { \"name\": \"Step Name\", \"status\": \"correct\" | \"incorrect\" | \"partial\", \"points\": \"+X\", \"message\": \"Brief comment\" } ], \"correctAnswer\": \"String explaining the correct final answer and how to get there. Only include this if the student made a mistake.\" }" },
+                  { text: "Extract all handwritten text and mathematical equations from this image exactly as written. Then, grade the work. Return the result strictly as a JSON object with this exact structure: { \"extractedText\": \"string\", \"score\": \"X.X / 5\", \"steps\": [ { \"name\": \"Step 1\", \"status\": \"correct/incorrect/partial\", \"points\": \"+X.X\", \"message\": \"explanation\" } ], \"correctAnswer\": \"Text explanation.\", \"correctAnswerLatex\": \"Pure LaTeX string containing the step-by-step correct mathematical solution, ONLY IF the student made a mistake. Omit if perfect.\", \"insight\": \"Summary of error.\" }" },
                   { inline_data: { mime_type: uploadedFile.type, data: base64String } }
                 ]
               }]
@@ -75,14 +77,9 @@ const Landing = () => {
                
                setTimeout(() => {
                  setIsEvaluating(false);
-                 setDemoResult({
-                   score: parsed.score,
-                   steps: parsed.steps,
-                   correctAnswer: parsed.correctAnswer,
-                   insight: parsed.score.includes('5 / 5') ? 'Perfect score! The student has demonstrated a complete understanding.' : 'The student made some mistakes. Review the steps and the correct answer below.'
-                 });
+                 setDemoResult(parsed);
                }, 500);
-               return; // Exit early to skip the mock grading
+               return; 
             } catch (e) {
                console.error(e);
                setExtractedText(`Failed to parse AI response: ${aiText}`);
@@ -93,28 +90,13 @@ const Landing = () => {
           setExtractedText(`Failed to connect to Gemini API: ${error.message}`);
         }
       } else {
-        // Fallback: Simulate highly advanced multimodal AI parsing
         setOcrStatus('Initializing Multimodal Engine...');
         
-        // Simulate progress bar filling up
         for (let i = 1; i <= 10; i++) {
           await new Promise(r => setTimeout(r, 150));
           setOcrProgress(i / 10);
-          if (i === 4) setOcrStatus('Detecting handwriting orientation...');
-          if (i === 7) setOcrStatus('Extracting mathematical syntax...');
         }
 
-        setExtractedText(`[MATH_BLOCK_DETECTED]
-Equation: x^2 - x + 6 = 0
-Method: Factorization
-User_Input:
-  Step 1: 2x^2 - 4x + 3x + 6 = 0
-  Step 2: 2x(x - 2) + 3(x + 2) = 0
-  Step 3: (2x + 3)(x - 2) = 0
-  Step 4: x = -3/2, x = 2
-  Final: x = -2 (Correction noted: actually x=-1.5, x=2)
-[END_BLOCK]`);
-        
         setOcrStatus('Applying custom rubric...');
         setTimeout(() => {
           setIsEvaluating(false);
@@ -126,17 +108,16 @@ User_Input:
               { name: "Step 3: Grouping", status: "incorrect", points: "+0.0", message: "Forced grouping: (x-2) and (x+2) do not match, so they cannot be grouped into (2x+3)(x-2)." },
               { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "Correctly set factors to zero to find roots, despite prior errors." }
             ],
-            correctAnswer: "The original equation x^2 - x + 6 = 0 cannot be factored (b² - 4ac = 1 - 24 = -23, no real roots). Even if it was 2x^2 - x - 6 = 0, the student forced a mathematically invalid grouping step because (x-2) and (x+2) don't match.",
-            insight: "The student tried to force a factorization that doesn't work. Major issues: changing the equation in Step 1, and an invalid grouping trick in Step 3 where mismatched brackets (x-2) and (x+2) were illegally merged."
+            correctAnswer: "The original equation x^2 - x + 6 = 0 cannot be factored (b² - 4ac = 1 - 24 = -23, no real roots).",
+            correctAnswerLatex: "\\begin{aligned} x^2 - x + 6 &= 0 \\\\ b^2 - 4ac &= (-1)^2 - 4(1)(6) \\\\ &= 1 - 24 \\\\ &= -23 \\end{aligned}",
+            insight: "The student tried to force a factorization that doesn't work. Major issues: changing the equation in Step 1, and an invalid grouping trick in Step 3."
           });
         }, 1500);
         return;
       }
     }
 
-    // Default simulation for non-upload clicks
     setOcrStatus('Applying custom rubric...');
-    // Simulate AI grading
     setTimeout(() => {
       setIsEvaluating(false);
       setDemoResult({
@@ -168,7 +149,7 @@ User_Input:
 
     const workflowInterval = setInterval(() => {
       setActiveWorkflowStep((prev) => (prev + 1) % 4);
-    }, 3500); // Change workflow step every 3.5 seconds
+    }, 3500);
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -189,18 +170,10 @@ User_Input:
     };
   }, []);
 
-  const faqs = [
-    { q: "Does it support regional boards like CBSE or ICSE?", a: "Yes, ScribScore can be fully customized to align with specific board marking schemes and guidelines." },
-    { q: "How accurate is the handwriting OCR?", a: "Our Multimodal OCR Parse model achieves over 98% accuracy on standard cursive and print handwriting." },
-    { q: "Can it grade step-by-step math derivations?", a: "Absolutely. The semantic evaluation system awards partial credit for correct mathematical steps even if the final answer is wrong." },
-    { q: "Is the student data secure?", a: "ScribScore is built with privacy by design. We are SOC-2 compliant and FERPA ready." }
-  ];
-
   return (
     <div className="landing-container animate-fade-in">
       <div className="cursor-glow"></div>
       
-      {/* 1. Navbar */}
       <nav className="landing-nav">
         <Link to="/" className="landing-logo">
           <Brain size={28} />
@@ -212,23 +185,11 @@ User_Input:
         </div>
       </nav>
 
-      {/* 2. Hero Section */}
       <header className="hero-section section-padding section-border-bottom">
         <div className="announcement-chip animate-fade-in delay-1">
           New: Fast & Accurate AI Evaluation
         </div>
-        <h1 
-          className="hero-title animate-fade-in delay-1" 
-          style={{ 
-            fontSize: 'clamp(4rem, 12vw, 10rem)', 
-            letterSpacing: '-0.05em', 
-            lineHeight: '0.95',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            textAlign: 'left'
-          }}
-        >
+        <h1 className="hero-title animate-fade-in delay-1" style={{ fontSize: 'clamp(4rem, 12vw, 10rem)', letterSpacing: '-0.05em', lineHeight: '0.95', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
           <span style={{ color: 'var(--text-primary)' }}>SCRIB</span>
           <span style={{ color: 'var(--text-tertiary)' }}>SCORE.</span>
         </h1>
@@ -243,10 +204,8 @@ User_Input:
             View Documentation
           </Link>
         </div>
-        
       </header>
 
-      {/* 3. Interactive Demo Playground */}
       <section className="demo-section section-padding section-border-bottom">
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <h2 className="section-title reveal-on-scroll" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
@@ -278,7 +237,6 @@ User_Input:
         )}
 
         <div className="demo-grid reveal-on-scroll">
-          {/* Left Panel: Upload/Input */}
           <div className="demo-panel input-panel">
             <div className="panel-header">
               <span className="dot" style={{ background: '#ff5f56' }}></span>
@@ -295,13 +253,9 @@ User_Input:
                     <p>Q: Find the roots of $x^2 - 5x + 6 = 0$</p>
                     <div className="handwriting-mock">
                       <p>x = [-b ± √(b² - 4ac)] / 2a</p>
-                      <p>x = [5 ± √(25 - 24)] / 2</p>
-                      <p>x = (5 ± 1) / 2</p>
-                      <p className="error-text">x = 3, x = 1</p>
                     </div>
                   </div>
                 )}
-                {isEvaluating && <div className="scanning-laser"></div>}
               </div>
               <div className="demo-controls" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', margin: 0 }}>
