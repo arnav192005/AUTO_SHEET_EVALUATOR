@@ -8,6 +8,15 @@ const Landing = () => {
   const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [demoResult, setDemoResult] = useState(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadedImageUrl(URL.createObjectURL(file));
+      setDemoResult(null);
+    }
+  };
 
   const runDemoEvaluation = () => {
     if (isEvaluating || demoResult) return;
@@ -29,6 +38,7 @@ const Landing = () => {
   const resetDemo = () => {
     setDemoResult(null);
     setIsEvaluating(false);
+    setUploadedImageUrl(null);
   };
 
   React.useEffect(() => {
@@ -135,19 +145,28 @@ const Landing = () => {
               <span className="panel-title">Student Answer Sheet.jpg</span>
             </div>
             <div className="panel-body">
-              <div className="mock-upload-area">
-                <div className="math-equation-mock">
-                  <p>Q: Find the roots of $x^2 - 5x + 6 = 0$</p>
-                  <div className="handwriting-mock">
-                    <p>x = [-b ± √(b² - 4ac)] / 2a</p>
-                    <p>x = [5 ± √(25 - 24)] / 2</p>
-                    <p>x = (5 ± 1) / 2</p>
-                    <p className="error-text">x = 3, x = 1</p>
+              <div className="mock-upload-area" style={{ padding: uploadedImageUrl ? '0' : '2rem' }}>
+                {uploadedImageUrl ? (
+                  <img src={uploadedImageUrl} alt="Uploaded student sheet" style={{ width: '100%', height: '100%', minHeight: '250px', objectFit: 'contain', borderRadius: '8px' }} />
+                ) : (
+                  <div className="math-equation-mock">
+                    <p>Q: Find the roots of $x^2 - 5x + 6 = 0$</p>
+                    <div className="handwriting-mock">
+                      <p>x = [-b ± √(b² - 4ac)] / 2a</p>
+                      <p>x = [5 ± √(25 - 24)] / 2</p>
+                      <p>x = (5 ± 1) / 2</p>
+                      <p className="error-text">x = 3, x = 1</p>
+                    </div>
                   </div>
-                </div>
+                )}
                 {isEvaluating && <div className="scanning-laser"></div>}
               </div>
-              <div className="demo-controls">
+              <div className="demo-controls" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', margin: 0 }}>
+                  <Upload size={18} />
+                  Upload Photo
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} disabled={isEvaluating} />
+                </label>
                 {!demoResult ? (
                   <button 
                     className="btn-primary evaluate-btn" 
