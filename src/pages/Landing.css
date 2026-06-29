@@ -967,8 +967,7 @@
   }
 }
 
-.demo-panel::before,
-.demo-panel::after {
+.demo-panel::before {
   content: "";
   position: absolute;
   inset: -1px; /* The border width */
@@ -976,8 +975,8 @@
   background: conic-gradient(
     from var(--glow-angle),
     transparent 60%,
-    rgba(180, 180, 180, 0.3) 80%,
-    rgba(230, 230, 230, 1) 100%
+    rgba(180, 180, 180, 0.5) 80%,
+    rgba(255, 255, 255, 1) 100%
   );
   z-index: -1;
   animation: spin-glow 4s linear infinite;
@@ -994,13 +993,6 @@
     linear-gradient(#fff 0 0);
   mask-composite: exclude;
   padding: 1px; /* Border thickness */
-}
-
-/* The soft outer glow */
-.demo-panel::after {
-  filter: blur(15px);
-  opacity: 0.6;
-  z-index: -2;
 }
 
 .panel-header {
