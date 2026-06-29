@@ -17,13 +17,18 @@ const Landing = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('geminiApiKey') || import.meta.env.VITE_GEMINI_API_KEY || '');
   const [showSettings, setShowSettings] = useState(false);
+  const [imageRotation, setImageRotation] = useState(0);
+  const fileInputRef = useRef(null);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setUploadedFile(file);
       setUploadedImageUrl(URL.createObjectURL(file));
+      setUploadedFile(file);
+      setExtractedText(null);
       setDemoResult(null);
+      setOcrProgress(0);
+      setImageRotation(0);
     }
   };
 
@@ -141,6 +146,7 @@ const Landing = () => {
     setExtractedText(null);
     setOcrProgress(0);
     setOcrStatus('');
+    setImageRotation(0);
   };
 
   React.useEffect(() => {
@@ -256,9 +262,37 @@ const Landing = () => {
             </div>
             <div className="panel-body">
               <div className="mock-upload-area" style={{ padding: uploadedImageUrl ? '0' : '2rem' }}>
-                {uploadedImageUrl ? (
-                  <img src={uploadedImageUrl} alt="Uploaded student sheet" style={{ width: '100%', height: '100%', minHeight: '250px', objectFit: 'contain', borderRadius: '8px' }} />
-                ) : (
+                  {uploadedImageUrl ? (
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <img 
+                        src={uploadedImageUrl} 
+                        alt="Uploaded math" 
+                        style={{ 
+                          maxWidth: '100%', 
+                          maxHeight: '400px', 
+                          borderRadius: '8px', 
+                          transform: `rotate(${imageRotation}deg)`, 
+                          transition: 'transform 0.3s ease' 
+                        }} 
+                      />
+                      <button 
+                        onClick={() => setImageRotation(prev => prev + 90)}
+                        className="btn-secondary"
+                        style={{ 
+                          position: 'absolute', 
+                          top: '10px', 
+                          right: '10px', 
+                          padding: '0.4rem 0.8rem',
+                          margin: 0,
+                          fontSize: '0.8rem',
+                          background: 'rgba(10, 10, 15, 0.8)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)'
+                        }}
+                      >
+                        ↻ Rotate
+                      </button>
+                    </div>
+                  ) : (
                   <div className="math-equation-mock">
                     <p>Q: Find the roots of $x^2 - 5x + 6 = 0$</p>
                     <div className="handwriting-mock">
