@@ -121,13 +121,13 @@ User_Input:
           setDemoResult({
             score: "1.0 / 5",
             steps: [
-              { name: "Step 1: Question Interpretation", status: "incorrect", points: "+0.0", message: "Wrote x^2 - x + 6 = 0 instead of standard form, and expanded incorrectly." },
-              { name: "Step 2: Factor Splitting", status: "incorrect", points: "+0.0", message: "Splitting does not match the original equation (sign error)." },
-              { name: "Step 3: Grouping", status: "incorrect", points: "+0.0", message: "Grouping is mathematically invalid (x-2 and x+2 don't match)." },
-              { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "Carried forward incorrect factors to find roots." }
+              { name: "Step 1: Equation Setup", status: "incorrect", points: "+0.0", message: "Changed original x^2 to 2x^2 incorrectly." },
+              { name: "Step 2: Factor Splitting", status: "incorrect", points: "+0.0", message: "Split -x into -4x + 3x, which is fine, but the first term is wrong." },
+              { name: "Step 3: Grouping", status: "incorrect", points: "+0.0", message: "Forced grouping: (x-2) and (x+2) do not match, so they cannot be grouped into (2x+3)(x-2)." },
+              { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "Correctly set factors to zero to find roots, despite prior errors." }
             ],
-            correctAnswer: "The equation x^2 - x + 6 = 0 has no real roots (discriminant is negative). The student's factorization steps are mathematically invalid due to multiple sign errors.",
-            insight: "The student attempted factorization but made critical sign errors in the very first step, leading to an invalid grouping. Heavy marks deducted."
+            correctAnswer: "The original equation x^2 - x + 6 = 0 cannot be factored (b² - 4ac = 1 - 24 = -23, no real roots). Even if it was 2x^2 - x - 6 = 0, the student forced a mathematically invalid grouping step because (x-2) and (x+2) don't match.",
+            insight: "The student tried to force a factorization that doesn't work. Major issues: changing the equation in Step 1, and an invalid grouping trick in Step 3 where mismatched brackets (x-2) and (x+2) were illegally merged."
           });
         }, 1500);
         return;
