@@ -115,7 +115,7 @@ const Landing = () => {
           setExtractedText(`Failed to connect to Gemini API: ${error.message}`);
         }
       } else {
-        setOcrStatus('Performing OCR Scan (Mock Engine)...');
+        setOcrStatus('API Key Missing! Using Mock Engine...');
         
         for (let i = 1; i <= 10; i++) {
           await new Promise(r => setTimeout(r, 150));
@@ -351,6 +351,14 @@ const Landing = () => {
                   Upload Document
                   <input type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" style={{ display: 'none' }} onChange={handleFileUpload} disabled={isEvaluating} />
                 </label>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setShowSettings(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', margin: 0 }}
+                >
+                  <Settings size={18} />
+                  API Settings
+                </button>
                 {!demoResult ? (
                   <button 
                     className="btn-primary evaluate-btn" 
@@ -655,6 +663,45 @@ const Landing = () => {
           <p>© {new Date().getFullYear()} ScribScore Educational Technologies. All rights reserved.</p>
         </div>
       </footer>
+
+      {showSettings && (
+        <div className="modal-overlay animate-fade-in" onClick={() => setShowSettings(false)} style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
+          backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div className="glass-panel" onClick={e => e.stopPropagation()} style={{
+            padding: '2rem', maxWidth: '450px', width: '90%', backgroundColor: 'var(--bg-color)', border: '1px solid var(--border-glass)', borderRadius: '12px'
+          }}>
+            <h2 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Settings size={24} /> API Settings
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              To enable dynamic grading of your actual uploaded files, please provide a Gemini API key. Without this, the system uses a mock fallback.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Gemini API Key</label>
+              <input 
+                type="password" 
+                placeholder="AIzaSy..." 
+                value={geminiApiKey}
+                onChange={(e) => {
+                  setGeminiApiKey(e.target.value);
+                  localStorage.setItem('geminiApiKey', e.target.value);
+                }}
+                style={{
+                  padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-color)', 
+                  background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)', width: '100%', fontFamily: 'var(--font-mono)'
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn-primary" onClick={() => setShowSettings(false)}>
+                Save & Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
