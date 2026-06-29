@@ -23,12 +23,24 @@ const Landing = () => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setUploadedImageUrl(URL.createObjectURL(file));
+      const url = URL.createObjectURL(file);
+      setUploadedImageUrl(url);
       setUploadedFile(file);
       setExtractedText(null);
       setDemoResult(null);
       setOcrProgress(0);
-      setImageRotation(0);
+      
+      // Auto-rotate heuristic for document photos:
+      // Answer sheets are typically portrait. If the image is landscape, auto-rotate it.
+      const img = new Image();
+      img.onload = () => {
+        if (img.width > img.height) {
+          setImageRotation(90);
+        } else {
+          setImageRotation(0);
+        }
+      };
+      img.src = url;
     }
   };
 
