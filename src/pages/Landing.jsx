@@ -424,11 +424,11 @@ const Landing = () => {
                       <div style={{ width: '100%', overflow: 'hidden' }}>
                         <p><strong>Correct Answer:</strong> {demoResult.correctAnswer}</p>
                         {demoResult.correctAnswerLatex && (
-                          <details style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '6px', border: '1px solid rgba(255, 95, 86, 0.3)' }}>
-                            <summary style={{ padding: '0.75rem 1rem', cursor: 'pointer', fontWeight: '600', color: '#ff908b', outline: 'none', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <Layers size={16} /> View Step-by-Step Math
+                          <details style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '8px', border: '1px solid rgba(255, 95, 86, 0.3)' }}>
+                            <summary style={{ padding: '1rem', cursor: 'pointer', fontWeight: '600', color: '#ff908b', outline: 'none', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <Layers size={18} /> View Step-by-Step Math
                             </summary>
-                            <div style={{ padding: '1rem', borderTop: '1px solid rgba(255, 95, 86, 0.2)', overflowX: 'auto', fontSize: '0.9em' }}>
+                            <div style={{ padding: '1.25rem 1rem', borderTop: '1px solid rgba(255, 95, 86, 0.2)', overflowX: 'auto', fontSize: '1em' }}>
                               <div dangerouslySetInnerHTML={{ __html: katex.renderToString(demoResult.correctAnswerLatex, { displayMode: true, throwOnError: false }) }} />
                             </div>
                           </details>

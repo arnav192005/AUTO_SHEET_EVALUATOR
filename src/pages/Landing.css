@@ -1194,3 +1194,14 @@
   overflow-x: auto;
   padding: 0.5rem;
 }
+
+/* Fix for KaTeX overflow on mobile - forces left alignment and allows scrolling */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: left !important;
+  padding: 0.5rem 0;
+}
+.katex-display > .katex {
+  text-align: left !important;
+}
