@@ -411,9 +411,16 @@ const Landing = () => {
                   </div>
 
                   {demoResult.correctAnswer && (
-                    <div className="insight-box" style={{ background: 'rgba(255, 95, 86, 0.1)', border: '1px solid rgba(255, 95, 86, 0.3)', marginTop: '1rem' }}>
-                      <Bot size={18} color="#ff5f56" />
-                      <p><strong>Correct Answer:</strong> {demoResult.correctAnswer}</p>
+                    <div className="insight-box" style={{ background: 'rgba(255, 95, 86, 0.1)', border: '1px solid rgba(255, 95, 86, 0.3)', marginTop: '1rem', alignItems: 'flex-start' }}>
+                      <Bot size={18} color="#ff5f56" style={{ flexShrink: 0, marginTop: '4px' }} />
+                      <div style={{ width: '100%', overflow: 'hidden' }}>
+                        <p><strong>Correct Answer:</strong> {demoResult.correctAnswer}</p>
+                        {demoResult.correctAnswerLatex && (
+                          <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '6px', overflowX: 'auto' }}>
+                            <BlockMath math={demoResult.correctAnswerLatex} />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
