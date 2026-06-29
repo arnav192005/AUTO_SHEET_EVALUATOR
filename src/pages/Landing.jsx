@@ -69,41 +69,49 @@ const Landing = () => {
 
           const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
               contents: [{
                 parts: [
-                  { text: "Extract all handwritten text and mathematical equations from this image exactly as written. Then, grade the work. Return the result strictly as a JSON object with this exact structure: { \"extractedText\": \"string\", \"score\": \"X.X / 5\", \"steps\": [ { \"name\": \"Step 1\", \"status\": \"correct/incorrect/partial\", \"points\": \"+X.X\", \"message\": \"explanation\" } ], \"correctAnswer\": \"Text explanation.\", \"correctAnswerLatex\": \"Pure LaTeX string containing the step-by-step correct mathematical solution, ONLY IF the student made a mistake. Omit if perfect.\", \"insight\": \"Summary of error.\" }" },
+                  { text: "Extract all handwritten text and mathematical equations from this image exactly as written. Then, grade the work. Return the result strictly as a JSON object with this exact structure: { \"extractedText\": \"string\", \"score\": \"X.X / 5\", \"steps\": [ { \"name\": \"Step 1\", \"status\": \"correct/incorrect/partial\", \"points\": \"+X.X\", \"message\": \"Friendly, simple explanation of what was right or wrong\" } ], \"correctAnswer\": \"A very friendly, encouraging, and easy-to-understand text explanation of the correct answer and where they went wrong, written in simple conversational language that a student can easily understand.\", \"correctAnswerLatex\": \"Pure LaTeX string containing the step-by-step correct mathematical solution, ONLY IF the student made a mistake. Omit if perfect.\", \"insight\": \"Encouraging summary of their overall performance and areas to improve.\" }" },
                   { inline_data: { mime_type: uploadedFile.type, data: base64String } }
                 ]
               }]
             })
           });
 
-          const data = await response.json();
-          setOcrProgress(0.9);
+          if (!response.ok) throw new Error('API Error');
           
-          if (data.error) {
-            setExtractedText(`Error from Gemini API: ${data.error.message}`);
-          } else {
-            let aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            aiText = aiText.replace(/```json\n?|\n?```/g, '').trim();
-            try {
-               const parsed = JSON.parse(aiText);
-               setExtractedText(parsed.extractedText);
-               
-               setTimeout(() => {
-                 setIsEvaluating(false);
-                 setDemoResult(parsed);
-               }, 500);
-               return; 
-            } catch (e) {
-               console.error(e);
-               setExtractedText(`Failed to parse AI response: ${aiText}`);
-            }
+          const data = await response.json();
+          const aiText = data.candidates[0].content.parts[0].text;
+          
+          // Parse the JSON out of the response (removing markdown code blocks if any)
+          const jsonMatch = aiText.match(/```(?:json)?\n?([\s\S]*?)```/) || [null, aiText];
+          const jsonString = jsonMatch[1].trim();
+          
+          try {
+             const parsed = JSON.parse(jsonString);
+             setExtractedText(parsed.extractedText || "No text extracted.");
+             
+             for (let i = 1; i <= 10; i++) {
+               await new Promise(r => setTimeout(r, 50));
+               setOcrProgress(i / 10);
+             }
+             
+             setTimeout(() => {
+               setIsEvaluating(false);
+               setDemoResult(parsed);
+             }, 500);
+             return; 
+          } catch (e) {
+             console.error(e);
+             setExtractedText(`Failed to parse AI response: ${aiText}`);
           }
+
         } catch (error) {
-          console.error("Gemini API Error:", error);
+          console.error(error);
           setExtractedText(`Failed to connect to Gemini API: ${error.message}`);
         }
       } else {
@@ -120,14 +128,14 @@ const Landing = () => {
           setDemoResult({
             score: "1.0 / 5",
             steps: [
-              { name: "Step 1: Equation Setup", status: "incorrect", points: "+0.0", message: "Changed original x^2 to 2x^2 incorrectly." },
-              { name: "Step 2: Factor Splitting", status: "incorrect", points: "+0.0", message: "Split -x into -4x + 3x, which is fine, but the first term is wrong." },
-              { name: "Step 3: Grouping", status: "incorrect", points: "+0.0", message: "Forced grouping: (x-2) and (x+2) do not match, so they cannot be grouped into (2x+3)(x-2)." },
-              { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "Correctly set factors to zero to find roots, despite prior errors." }
+              { name: "Step 1: Equation Setup", status: "incorrect", points: "+0.0", message: "You changed the original x² to 2x². Be careful to copy the question exactly!" },
+              { name: "Step 2: Factor Splitting", status: "incorrect", points: "+0.0", message: "Splitting -x into -4x + 3x was a clever idea, but since the first term was wrong, it throws off the math." },
+              { name: "Step 3: Grouping", status: "incorrect", points: "+0.0", message: "Oops! You can only group terms if the brackets match exactly. (x-2) and (x+2) are different, so we can't combine them." },
+              { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "You knew exactly what to do next (setting factors to zero) even if the previous steps had errors. Good logic!" }
             ],
-            correctAnswer: "The original equation x^2 - x + 6 = 0 cannot be factored (b² - 4ac = 1 - 24 = -23, no real roots).",
-            correctAnswerLatex: "\\begin{aligned} x^2 - x + 6 &= 0 \\\\ b^2 - 4ac &= (-1)^2 - 4(1)(6) \\\\ &= 1 - 24 \\\\ &= -23 \\end{aligned}",
-            insight: "The student tried to force a factorization that doesn't work. Major issues: changing the equation in Step 1, and an invalid grouping trick in Step 3."
+            correctAnswer: "Hey there! It looks like you tried to use the middle-term splitting method, which is a great approach. However, the equation x² - x + 6 = 0 actually doesn't have any real roots. If we check the discriminant (b² - 4ac), we get a negative number (-23). This means you can't factor it using normal real numbers. Also, remember that when grouping, the terms inside the brackets MUST be identical!",
+            correctAnswerLatex: "\\begin{aligned} x^2 - x + 6 &= 0 \\\\ b^2 - 4ac &= (-1)^2 - 4(1)(6) \\\\ &= 1 - 24 \\\\ &= -23 \\\\ &\\text{Since discriminant < 0, there are no real roots.} \\end{aligned}",
+            insight: "You have the right idea about the steps for factorization, but make sure to double-check your initial equation and remember the rules for grouping. Keep practicing!"
           });
         }, 1500);
         return;
