@@ -134,7 +134,7 @@ const Landing = () => {
               { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "You knew exactly what to do next (setting factors to zero) even if the previous steps had errors. Good logic!" }
             ],
             correctAnswer: "Hey there! It looks like you tried to use the middle-term splitting method, which is a great approach. However, the equation x² - x + 6 = 0 actually doesn't have any real roots. If we check the discriminant (b² - 4ac), we get a negative number (-23). This means you can't factor it using normal real numbers. Also, remember that when grouping, the terms inside the brackets MUST be identical!",
-            correctAnswerLatex: String.raw`\begin{aligned} x^2 - x + 6 &= 0 \\ b^2 - 4ac &= (-1)^2 - 4(1)(6) \\ &= 1 - 24 \\ &= -23 \end{aligned}` + "\n\nSince discriminant < 0, there are no real roots.",
+            correctAnswerLatex: String.raw`\begin{aligned} x^2 - x + 6 &= 0 \\ b^2 - 4ac &= (-1)^2 - 4(1)(6) \\ &= 1 - 24 \\ &= -23 \end{aligned}`,
             insight: "You have the right idea about the steps for factorization, but make sure to double-check your initial equation and remember the rules for grouping. Keep practicing!"
           });
         }, 1500);
