@@ -123,10 +123,13 @@ const Landing = () => {
       setDemoResult({
         score: "4.5 / 5",
         steps: [
-          { name: "Step 1: Formula Application", status: "correct", points: "+2.0", message: "Correct formula used for quadratic roots." },
-          { name: "Step 2: Value Substitution", status: "correct", points: "+2.0", message: "Values substituted correctly." },
-          { name: "Step 3: Final Calculation", status: "partial", points: "+0.5", message: "Minor arithmetic error in the final addition." }
-        ]
+          { name: "Step 1: Formula Application", status: "correct", points: "+2.0", message: "Correctly applied the quadratic formula." },
+          { name: "Step 2: Substitution", status: "correct", points: "+1.5", message: "Substituted all values correctly from the equation." },
+          { name: "Step 3: Calculation", status: "partial", points: "+1.0", message: "Minor arithmetic error in final square root simplification." }
+        ],
+        correctAnswer: "The student made a slight calculation error at the end. The square root of 25 is 5, not 4.",
+        correctAnswerLatex: "\\begin{aligned} x &= \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} \\\\ x &= \\frac{5 \\pm \\sqrt{25 - 24}}{2} \\\\ x &= \\frac{5 \\pm \\sqrt{1}}{2} \\\\ x &= \\frac{5 \\pm 1}{2} \\\\ x &= 3 \\text{ or } x = 2 \\end{aligned}",
+        insight: "The student has a strong grasp of the fundamental concepts but needs to double-check their final arithmetic simplifications."
       });
     }, 1500);
   };
