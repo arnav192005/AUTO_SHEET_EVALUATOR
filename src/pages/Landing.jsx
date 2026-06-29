@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2, AlertCircle } from 'lucide-react';
-import { BlockMath } from 'react-katex';
+import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import './Landing.css';
 
@@ -134,7 +134,7 @@ const Landing = () => {
               { name: "Step 4: Finding Roots", status: "partial", points: "+1.0", message: "You knew exactly what to do next (setting factors to zero) even if the previous steps had errors. Good logic!" }
             ],
             correctAnswer: "Hey there! It looks like you tried to use the middle-term splitting method, which is a great approach. However, the equation x² - x + 6 = 0 actually doesn't have any real roots. If we check the discriminant (b² - 4ac), we get a negative number (-23). This means you can't factor it using normal real numbers. Also, remember that when grouping, the terms inside the brackets MUST be identical!",
-            correctAnswerLatex: String.raw`\begin{aligned} x^2 - x + 6 &= 0 \\ b^2 - 4ac &= (-1)^2 - 4(1)(6) \\ &= 1 - 24 \\ &= -23 \end{aligned}`,
+            correctAnswerLatex: String.raw`\begin{aligned} &\text{Step 1: Write standard form} \\ &ax^2 + bx + c = 0 \Rightarrow a=1, b=-1, c=6 \\ \\ &\text{Step 2: Find Discriminant } (D) \\ &D = b^2 - 4ac \\ &D = (-1)^2 - 4(1)(6) \\ &D = 1 - 24 = -23 \\ \\ &\text{Step 3: Conclusion} \\ &\text{Since } D < 0 \text{, no real roots exist.} \end{aligned}`,
             insight: "You have the right idea about the steps for factorization, but make sure to double-check your initial equation and remember the rules for grouping. Keep practicing!"
           });
         }, 1500);
@@ -425,7 +425,7 @@ const Landing = () => {
                         <p><strong>Correct Answer:</strong> {demoResult.correctAnswer}</p>
                         {demoResult.correctAnswerLatex && (
                           <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '6px', overflowX: 'auto' }}>
-                            <BlockMath math={demoResult.correctAnswerLatex} />
+                            <div dangerouslySetInnerHTML={{ __html: katex.renderToString(demoResult.correctAnswerLatex, { displayMode: true, throwOnError: false }) }} />
                           </div>
                         )}
                       </div>
