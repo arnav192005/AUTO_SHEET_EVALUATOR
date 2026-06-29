@@ -945,13 +945,62 @@
 }
 
 .demo-panel {
+  position: relative;
   background: var(--bg-glass);
-  border: 1px solid var(--border-glass);
+  border: 1px solid transparent; /* Replaces old border to keep sizing */
   border-radius: 12px;
-  overflow: hidden;
+  /* Removed overflow: hidden so outer glow is visible */
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
+}
+
+@property --glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin-glow {
+  to {
+    --glow-angle: 360deg;
+  }
+}
+
+.demo-panel::before,
+.demo-panel::after {
+  content: "";
+  position: absolute;
+  inset: -1px; /* The border width */
+  border-radius: inherit; /* Matches the 12px of demo-panel */
+  background: conic-gradient(
+    from var(--glow-angle),
+    transparent 60%,
+    rgba(180, 180, 180, 0.3) 80%,
+    rgba(230, 230, 230, 1) 100%
+  );
+  z-index: -1;
+  animation: spin-glow 4s linear infinite;
+}
+
+/* The actual "border" line */
+.demo-panel::before {
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  padding: 1px; /* Border thickness */
+}
+
+/* The soft outer glow */
+.demo-panel::after {
+  filter: blur(15px);
+  opacity: 0.6;
+  z-index: -2;
 }
 
 .panel-header {
@@ -961,6 +1010,7 @@
   align-items: center;
   gap: 0.5rem;
   border-bottom: 1px solid var(--border-glass);
+  border-radius: 12px 12px 0 0; /* Add radius here since parent no longer has overflow: hidden */
 }
 
 .panel-header .dot {
