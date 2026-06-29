@@ -426,19 +426,19 @@ const Landing = () => {
                 </div>
               )}
 
+              {extractedText && !isEvaluating && (
+                <div className="extracted-text-box animate-fade-in" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '1rem', marginBottom: '1rem' }}>
+                  <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem', marginTop: 0 }}>
+                    <ScanText size={16} /> API / Processing Status
+                  </h4>
+                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#a0aec0', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
+                    {extractedText}
+                  </pre>
+                </div>
+              )}
+
               {demoResult && (
                 <div className="result-state animate-fade-in">
-                  {extractedText && (
-                    <div className="extracted-text-box" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '1rem', marginBottom: '0.5rem' }}>
-                      <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem', marginTop: 0 }}>
-                        <ScanText size={16} /> Extracted Text (Raw AI Output)
-                      </h4>
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#a0aec0', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
-                        {extractedText}
-                      </pre>
-                    </div>
-                  )}
-
                   <div className="score-banner">
                     <span className="score-label">Final Score</span>
                     <span className="score-value">{demoResult.score}</span>
