@@ -13,7 +13,7 @@ const Terms = () => {
         <p style={{ marginBottom: '1.5rem' }}>ScribScore guarantees a 99.9% uptime for Enterprise customers. Scheduled maintenance windows will be communicated at least 48 hours in advance.</p>
         
         <h3 style={{ color: 'white', marginBottom: '1rem' }}>3. Acceptable Use</h3>
-        <p style={{ marginBottom: '1.5rem' }}>You may not reverse-engineer the ScribScore evaluation engine, attempt to extract the underlying models, or use the service for processing non-educational materials without prior written consent.</p>
+        <p style={{ marginBottom: '1.5rem' }}>You may not reverse-engineer the ScribScore evaluation system, attempt to extract the underlying models, or use the service for processing non-educational materials without prior written consent.</p>
       </div>
     </InfoLayout>
   );

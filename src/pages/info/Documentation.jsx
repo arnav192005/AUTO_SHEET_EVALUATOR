@@ -4,7 +4,7 @@ import InfoLayout from '../../components/InfoLayout';
 const Documentation = () => {
   return (
     <InfoLayout title="Documentation & API">
-      <p>Welcome to the ScribScore developer documentation. Here you'll find everything you need to integrate our grading engine into your own institutional software.</p>
+      <p>Welcome to the ScribScore developer documentation. Here you'll find everything you need to integrate our grading system into your own institutional software.</p>
       
       <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', borderRadius: '12px', marginTop: '2rem' }}>
         <h3 style={{ color: 'white', marginBottom: '1rem' }}>REST API v2.0</h3>

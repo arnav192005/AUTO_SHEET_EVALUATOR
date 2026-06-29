@@ -4,13 +4,13 @@ import InfoLayout from '../../components/InfoLayout';
 const Changelog = () => {
   return (
     <InfoLayout title="Changelog">
-      <p>Stay up to date with the latest improvements to the ScribScore engine.</p>
+      <p>Stay up to date with the latest improvements to the ScribScore platform.</p>
       
       <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div style={{ paddingLeft: '1.5rem', borderLeft: '2px solid var(--accent-primary)' }}>
           <h3 style={{ color: 'white', marginBottom: '0.5rem' }}>v2.4.0 - Mathematical Step Evaluation</h3>
           <span style={{ color: 'var(--accent-primary)', fontSize: '0.875rem', fontWeight: 'bold' }}>October 2026</span>
-          <p style={{ marginTop: '1rem' }}>Our semantic engine now natively understands mathematical derivations, assigning automated partial credit for standard algorithmic steps.</p>
+          <p style={{ marginTop: '1rem' }}>Our semantic system now natively understands mathematical derivations, assigning automated partial credit for standard algorithmic steps.</p>
         </div>
         
         <div style={{ paddingLeft: '1.5rem', borderLeft: '2px solid var(--border-glass)' }}>

@@ -15,7 +15,7 @@ const Features = () => {
       
       <div style={{ display: 'grid', gap: '2rem', marginTop: '2rem' }}>
         <div>
-          <h3 style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}><ScanText className="text-primary"/> Multimodal OCR Engine</h3>
+          <h3 style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}><ScanText className="text-primary"/> Multimodal OCR System</h3>
           <p>Unlike traditional OCR that struggles with cursive or mathematical notation, our vision models parse structured equations, diagrams, and messy handwriting with 98% accuracy.</p>
         </div>
         <div>
@@ -24,7 +24,7 @@ const Features = () => {
         </div>
         <div>
           <h3 style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}><Layers className="text-primary"/> Step-by-Step Evaluation</h3>
-          <p>For subjects like Mathematics and Physics, our engine follows the logical progression of the student's work, assigning partial credit for correct steps even if the final conclusion is flawed.</p>
+          <p>For subjects like Mathematics and Physics, our system follows the logical progression of the student's work, assigning partial credit for correct steps even if the final conclusion is flawed.</p>
         </div>
         <div>
           <h3 style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}><BarChart3 className="text-primary"/> Granular Analytics</h3>
@@ -75,7 +75,7 @@ import InfoLayout from '../../components/InfoLayout';
 const Documentation = () => {
   return (
     <InfoLayout title="Documentation & API">
-      <p>Welcome to the ScribScore developer documentation. Here you'll find everything you need to integrate our grading engine into your own institutional software.</p>
+      <p>Welcome to the ScribScore developer documentation. Here you'll find everything you need to integrate our grading system into your own institutional software.</p>
       
       <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', borderRadius: '12px', marginTop: '2rem' }}>
         <h3 style={{ color: 'white', marginBottom: '1rem' }}>REST API v2.0</h3>
@@ -101,13 +101,13 @@ import InfoLayout from '../../components/InfoLayout';
 const Changelog = () => {
   return (
     <InfoLayout title="Changelog">
-      <p>Stay up to date with the latest improvements to the ScribScore engine.</p>
+      <p>Stay up to date with the latest improvements to the ScribScore platform.</p>
       
       <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div style={{ paddingLeft: '1.5rem', borderLeft: '2px solid var(--accent-primary)' }}>
           <h3 style={{ color: 'white', marginBottom: '0.5rem' }}>v2.4.0 - Mathematical Step Evaluation</h3>
           <span style={{ color: 'var(--accent-primary)', fontSize: '0.875rem', fontWeight: 'bold' }}>October 2026</span>
-          <p style={{ marginTop: '1rem' }}>Our semantic engine now natively understands mathematical derivations, assigning automated partial credit for standard algorithmic steps.</p>
+          <p style={{ marginTop: '1rem' }}>Our semantic system now natively understands mathematical derivations, assigning automated partial credit for standard algorithmic steps.</p>
         </div>
         
         <div style={{ paddingLeft: '1.5rem', borderLeft: '2px solid var(--border-glass)' }}>
@@ -287,7 +287,7 @@ const Terms = () => {
         <p style={{ marginBottom: '1.5rem' }}>ScribScore guarantees a 99.9% uptime for Enterprise customers. Scheduled maintenance windows will be communicated at least 48 hours in advance.</p>
         
         <h3 style={{ color: 'white', marginBottom: '1rem' }}>3. Acceptable Use</h3>
-        <p style={{ marginBottom: '1.5rem' }}>You may not reverse-engineer the ScribScore evaluation engine, attempt to extract the underlying models, or use the service for processing non-educational materials without prior written consent.</p>
+        <p style={{ marginBottom: '1.5rem' }}>You may not reverse-engineer the ScribScore evaluation system, attempt to extract the underlying models, or use the service for processing non-educational materials without prior written consent.</p>
       </div>
     </InfoLayout>
   );
