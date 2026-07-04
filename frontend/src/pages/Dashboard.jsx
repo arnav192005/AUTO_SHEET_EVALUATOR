@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, AlertCircle, CheckCircle2, TrendingUp, X } from 'lucide-react';
+import { AppApi } from '../api/client';
 import './Dashboard.css';
 
 const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay }) => (
@@ -50,11 +51,23 @@ const Dashboard = () => {
   const [chartModalOpen, setChartModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const recentBatches = [
+  const [batches, setBatches] = useState([
     { id: 'BCH-089', subject: 'Computer Science 101', date: 'Oct 24, 2023', total: 120, status: 'Completed', progress: 100 },
     { id: 'BCH-090', subject: 'Advanced Mathematics', date: 'Oct 25, 2023', total: 85, status: 'Needs Review', progress: 92 },
     { id: 'BCH-091', subject: 'Physics Midterm', date: 'Oct 26, 2023', total: 200, status: 'Processing', progress: 45 },
-  ];
+  ]);
+
+  useEffect(() => {
+    // Attempt to fetch from real API (fallback to mock if it fails/returns null)
+    AppApi.getRecentBatches().then(data => {
+      if (data && data.length > 0) {
+        setBatches(data);
+      }
+    });
+
+    // Just to verify backend connection with schema previews
+    AppApi.getPreviewExam().then(exam => console.log('Backend connected, preview exam:', exam));
+  }, []);
 
   return (
     <div className="dashboard-container animate-fade-in">
@@ -95,7 +108,7 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {recentBatches.map((batch, idx) => (
+              {batches.map((batch, idx) => (
                 <tr key={batch.id} style={{ animationDelay: `${0.4 + idx * 0.1}s` }} className="animate-fade-in">
                   <td className="font-mono">{batch.id}</td>
                   <td className="font-semibold">{batch.subject}</td>

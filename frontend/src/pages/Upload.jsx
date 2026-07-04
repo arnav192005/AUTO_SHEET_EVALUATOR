@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, File, X, CheckCircle } from 'lucide-react';
+import { AppApi } from '../api/client';
 import './Upload.css';
 
 const Upload = () => {
@@ -40,14 +41,26 @@ const Upload = () => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const simulateUpload = () => {
+  const simulateUpload = async () => {
     setUploading(true);
-    setTimeout(() => {
+    
+    // Simulate real API call (will just catch error or return null currently)
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+    
+    try {
+      await AppApi.uploadAnswerSheets(formData);
+      // Wait for a second for visual effect anyway
+      await new Promise(r => setTimeout(r, 1000));
+      
       setUploading(false);
       setFiles([]);
       alert("Batch uploaded successfully and sent for OCR preprocessing.");
       navigate('/review');
-    }, 2000);
+    } catch (error) {
+      console.error('Upload failed', error);
+      setUploading(false);
+    }
   };
 
   return (
