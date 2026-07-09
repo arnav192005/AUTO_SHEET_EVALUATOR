@@ -76,7 +76,7 @@ async def get_my_results(db: AsyncSession = Depends(get_db)):
         
         results.append({
             "id": f"T-{sheet.id:03d}",
-            "subject": sheet.exam.title if sheet.exam else f"Exam {sheet.exam_id}",
+            "subject": sheet.exam.title if sheet.exam is not None else f"Exam {sheet.exam_id}",
             "date": sheet.created_at.strftime("%b %d, %Y"),
             "score": round(total_score, 1),
             "total": round(max_score, 1),
