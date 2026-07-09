@@ -8,13 +8,13 @@ from fastapi.responses import StreamingResponse
 
 from db.session import get_db
 from db.models import Exam, AnswerSheet, EvaluationResult, ExtractedAnswer
-from packages.common.enums import ExamStatus
+from packages.common.enums import ExamStatus, SheetStatus
 
 router = APIRouter(prefix="/api/v1/exams", tags=["Exams"])
 
 @router.get("/stats")
 async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
-    total_graded_query = select(func.count(AnswerSheet.id)).where(AnswerSheet.status == "EVALUATED")
+    total_graded_query = select(func.count(AnswerSheet.id)).where(AnswerSheet.status == SheetStatus.EVALUATED)
     total_graded = (await db.execute(total_graded_query)).scalar() or 0
     
     # Calculate average score based on EvaluationResult
@@ -50,7 +50,7 @@ async def get_my_results(db: AsyncSession = Depends(get_db)):
     query = (
         select(AnswerSheet)
         .options(selectinload(AnswerSheet.exam))
-        .where(AnswerSheet.status == "EVALUATED")
+        .where(AnswerSheet.status == SheetStatus.EVALUATED)
         .order_by(AnswerSheet.created_at.desc())
     )
     result = await db.execute(query)
@@ -92,7 +92,7 @@ async def export_exam_results(exam_id: int, db: AsyncSession = Depends(get_db)):
         select(AnswerSheet)
         .options(selectinload(AnswerSheet.extracted_answers).selectinload(ExtractedAnswer.evaluation_result))
         .where(AnswerSheet.exam_id == exam_id)
-        .where(AnswerSheet.status == "EVALUATED")
+        .where(AnswerSheet.status == SheetStatus.EVALUATED)
     )
     result = await db.execute(query)
     sheets = result.scalars().all()
