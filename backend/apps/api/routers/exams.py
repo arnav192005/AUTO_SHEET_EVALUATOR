@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
+import io
+import csv
+from fastapi.responses import StreamingResponse
 
 from db.session import get_db
 from db.models import Exam, AnswerSheet, EvaluationResult, ExtractedAnswer
@@ -82,3 +85,31 @@ async def get_my_results(db: AsyncSession = Depends(get_db)):
             "percentile": 99
         })
     return results
+
+@router.get("/{exam_id}/export")
+async def export_exam_results(exam_id: int, db: AsyncSession = Depends(get_db)):
+    query = (
+        select(AnswerSheet)
+        .options(selectinload(AnswerSheet.extracted_answers).selectinload(ExtractedAnswer.evaluation_result))
+        .where(AnswerSheet.exam_id == exam_id)
+        .where(AnswerSheet.status == "EVALUATED")
+    )
+    result = await db.execute(query)
+    sheets = result.scalars().all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Student Roll", "Status", "Score", "Max Score"])
+
+    for sheet in sheets:
+        score = sum(ans.evaluation_result.score for ans in sheet.extracted_answers if ans.evaluation_result)
+        max_score = sum(ans.evaluation_result.max_score for ans in sheet.extracted_answers if ans.evaluation_result)
+        writer.writerow([sheet.student_roll, sheet.status.name, score, max_score])
+
+    output.seek(0)
+    return StreamingResponse(
+        output, 
+        media_type="text/csv", 
+        headers={"Content-Disposition": f"attachment; filename=exam_{exam_id}_results.csv"}
+    )
+
