@@ -1,17 +1,36 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ZoomIn, ZoomOut, Check, X, AlertTriangle, BookOpen, Brain, Image as ImageIcon } from 'lucide-react';
 import './ReviewSession.css';
 
 const ReviewSession = () => {
-  const [score, setScore] = useState(7.5);
-  const [zoom, setZoom] = useState(100);
   const navigate = useNavigate();
+  const location = useLocation();
+  const fileUrl = location.state?.fileUrl || sessionStorage.getItem('previewFileUrl');
+  const fileType = location.state?.fileType || sessionStorage.getItem('previewFileType');
   const maxScore = 10;
   
-  const studentAnswer = "Newton's second law of motion states that the rate of change of momentum of a body is directly proportional to the force applied, and this change in momentum takes place in the direction of the applied force. F = m*a where m is mass and a is acceleration.";
-  const expectedAnswer = "Newton's second law: Force equals mass times acceleration (F=ma). The net force on an object is equal to the rate of change of its linear momentum.";
-  const llmRationale = "The student correctly identified the core definition of the law and included the formula F = m*a. However, they slightly hallucinated 'rate of change of momentum is directly proportional' instead of 'equal to' in some contexts, but it is generally accepted in classical definitions. Deducting a small amount for lack of clarity on 'net force'.";
+  const isFileUpload = !!fileUrl;
+
+  const storedEvalData = sessionStorage.getItem('evaluationData');
+  const parsedEvalData = storedEvalData ? JSON.parse(storedEvalData) : null;
+
+  const [score, setScore] = useState(parsedEvalData ? parsedEvalData.score : (isFileUpload ? 10 : 7.5));
+  const [zoom, setZoom] = useState(100);
+
+  const studentAnswer = parsedEvalData ? parsedEvalData.studentAnswer : (isFileUpload 
+    ? "2x² - x - 6 = 0\n2x² - 4x + 3x - 6 = 0\n2x(x - 2) + 3(x - 2) = 0\n(2x + 3)(x - 2) = 0\nx = -3/2, x = 2"
+    : "Newton's second law of motion states that the rate of change of momentum of a body is directly proportional to the force applied, and this change in momentum takes place in the direction of the applied force. F = m*a where m is mass and a is acceleration.");
+  
+  const expectedAnswer = parsedEvalData ? parsedEvalData.expectedAnswer : (isFileUpload
+    ? "To solve 2x² - x - 6 = 0: Split the middle term to get 2x² - 4x + 3x - 6 = 0. Factorize: 2x(x - 2) + 3(x - 2) = 0, giving (2x + 3)(x - 2) = 0. Roots: x = -3/2, x = 2."
+    : "Newton's second law: Force equals mass times acceleration (F=ma). The net force on an object is equal to the rate of change of its linear momentum.");
+  
+  const llmRationale = parsedEvalData ? parsedEvalData.llmRationale : (isFileUpload
+    ? "The student correctly used the middle-term splitting method for quadratic factorization. All algebraic steps are clear and logically sound, leading to the correct roots. Awarding full marks."
+    : "The student correctly identified the core definition of the law and included the formula F = m*a. However, they slightly hallucinated 'rate of change of momentum is directly proportional' instead of 'equal to' in some contexts. Deducting a small amount for lack of clarity on 'net force'.");
+    
+  const aiConfidence = parsedEvalData ? parsedEvalData.aiConfidence : (isFileUpload ? 98 : 72);
 
   const handleApprove = () => {
     alert("Score approved and saved!");
@@ -56,18 +75,28 @@ const ReviewSession = () => {
           </div>
           
           <div className="image-viewer">
-            <div className="mock-document">
-              <div className="mock-handwriting">
-                <p>Q3. Explain Newton's Second Law.</p>
-                <p className="cursive">Newton's second law of motion states that the</p>
-                <p className="cursive">rate of change of momentum of a body is</p>
-                <p className="cursive">directly proportional to the force applied,</p>
-                <p className="cursive">and this change takes place in the direction</p>
-                <p className="cursive">of the applied force. F = m * a where</p>
-                <p className="cursive">m is mass and a is acceleration.</p>
+            {fileUrl ? (
+              <div className="mock-document" style={{ padding: 0, overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
+                {fileType === 'application/pdf' ? (
+                  <embed src={fileUrl} type="application/pdf" style={{ width: '100%', height: '100%' }} />
+                ) : (
+                  <img src={fileUrl} alt="Uploaded sheet" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                )}
               </div>
-              <div className="bounding-box pulse-box"></div>
-            </div>
+            ) : (
+              <div className="mock-document">
+                <div className="mock-handwriting">
+                  <p>Q3. Explain Newton's Second Law.</p>
+                  <p className="cursive">Newton's second law of motion states that the</p>
+                  <p className="cursive">rate of change of momentum of a body is</p>
+                  <p className="cursive">directly proportional to the force applied,</p>
+                  <p className="cursive">and this change takes place in the direction</p>
+                  <p className="cursive">of the applied force. F = m * a where</p>
+                  <p className="cursive">m is mass and a is acceleration.</p>
+                </div>
+                <div className="bounding-box pulse-box"></div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -77,7 +106,7 @@ const ReviewSession = () => {
             <div className="section-title">
               <BookOpen size={18} className="text-accent" /> Extracted Text (OCR)
             </div>
-            <div className="text-content">
+            <div className="text-content" style={{ whiteSpace: 'pre-line' }}>
               {studentAnswer}
             </div>
           </div>
@@ -119,12 +148,16 @@ const ReviewSession = () => {
                 <div className="confidence-meter">
                   <div className="meter-label">
                     <span>AI Confidence</span>
-                    <span className="text-warning">72%</span>
+                    <span className={aiConfidence > 85 ? "text-success" : "text-warning"}>{aiConfidence}%</span>
                   </div>
                   <div className="meter-bar">
-                    <div className="meter-fill warning" style={{ width: '72%' }}></div>
+                    <div className={`meter-fill ${aiConfidence > 85 ? "success" : "warning"}`} style={{ width: `${aiConfidence}%`, background: aiConfidence > 85 ? 'var(--success-color)' : '' }}></div>
                   </div>
-                  <p className="meter-help">Confidence is below 85% threshold. Manual review required.</p>
+                  <p className="meter-help">
+                    {aiConfidence > 85 
+                      ? "High confidence. Auto-approval recommended." 
+                      : "Confidence is below 85% threshold. Manual review required."}
+                  </p>
                 </div>
               </div>
             </div>

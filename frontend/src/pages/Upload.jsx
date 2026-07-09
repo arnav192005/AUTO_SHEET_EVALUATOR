@@ -49,14 +49,24 @@ const Upload = () => {
     files.forEach(file => formData.append('files', file));
     
     try {
-      await AppApi.uploadAnswerSheets(formData);
-      // Wait for a second for visual effect anyway
-      await new Promise(r => setTimeout(r, 1000));
+      const response = await AppApi.uploadAnswerSheets(formData);
+      
+      const uploadedFileUrl = files.length > 0 ? URL.createObjectURL(files[0]) : null;
+      const uploadedFileType = files.length > 0 ? files[0].type : null;
+      
+      if (uploadedFileUrl) {
+        sessionStorage.setItem('previewFileUrl', uploadedFileUrl);
+        sessionStorage.setItem('previewFileType', uploadedFileType);
+      }
+
+      if (response && response.results && response.results.length > 0) {
+        sessionStorage.setItem('evaluationData', JSON.stringify(response.results[0]));
+      }
       
       setUploading(false);
       setFiles([]);
-      alert("Batch uploaded successfully and sent for OCR preprocessing.");
-      navigate('/review');
+      alert("Batch uploaded successfully and sent for AI Evaluation!");
+      navigate('/review', { state: { fileUrl: uploadedFileUrl, fileType: uploadedFileType } });
     } catch (error) {
       console.error('Upload failed', error);
       setUploading(false);
@@ -83,21 +93,35 @@ const Upload = () => {
             <div className="upload-icon-wrapper">
               <UploadCloud size={48} className="upload-icon" />
             </div>
-            <h3>Drag & Drop your files here</h3>
-            <p className="text-muted">Supports PDF, JPG, PNG up to 50MB</p>
+            <h3>Drag & Drop your files or folders here</h3>
+            <p className="text-muted">Supports single files or bulk folder uploads (PDF, JPG, PNG)</p>
             
             <div className="divider"><span>OR</span></div>
             
-            <input 
-              type="file" 
-              id="file-upload" 
-              multiple 
-              className="hidden-input" 
-              onChange={handleFileSelect}
-            />
-            <label htmlFor="file-upload" className="btn-secondary">
-              Browse Files
-            </label>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              <input 
+                type="file" 
+                id="file-upload" 
+                multiple 
+                className="hidden-input" 
+                onChange={handleFileSelect}
+              />
+              <label htmlFor="file-upload" className="btn-secondary">
+                Browse Files
+              </label>
+
+              <input 
+                type="file" 
+                id="folder-upload" 
+                webkitdirectory="true"
+                directory="true"
+                className="hidden-input" 
+                onChange={handleFileSelect}
+              />
+              <label htmlFor="folder-upload" className="btn-secondary">
+                Browse Folder (Bulk)
+              </label>
+            </div>
           </div>
         </div>
 

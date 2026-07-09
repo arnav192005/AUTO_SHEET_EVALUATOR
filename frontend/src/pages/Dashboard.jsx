@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, AlertCircle, CheckCircle2, TrendingUp, X } from 'lucide-react';
+import { FileText, AlertCircle, CheckCircle2, TrendingUp, X, Users, BookOpen, ThumbsDown } from 'lucide-react';
 import { AppApi } from '../api/client';
+import ThemeToggle from '../components/ThemeToggle';
 import './Dashboard.css';
 
 const StatCard = ({ title, value, icon: Icon, trend, colorClass, delay }) => (
@@ -40,8 +41,8 @@ const PieChartCard = ({ title, value, percentage, trend, delay, onClick }) => (
         borderRadius: '50%',
         border: '1px solid var(--border-color)',
         background: `conic-gradient(var(--accent-primary) ${percentage}%, rgba(255, 255, 255, 0.1) 0)`,
-        boxShadow: '4px 4px 0px 0px rgba(0, 0, 0, 0.5)',
-        transition: 'transform var(--transition-fast)'
+        boxShadow: '0 8px 16px var(--border-glass)',
+        transition: 'transform var(--transition-normal)'
       }}
     />
   </div>
@@ -51,17 +52,35 @@ const Dashboard = () => {
   const [chartModalOpen, setChartModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const [batches, setBatches] = useState([
-    { id: 'BCH-089', subject: 'Computer Science 101', date: 'Oct 24, 2023', total: 120, status: 'Completed', progress: 100 },
-    { id: 'BCH-090', subject: 'Advanced Mathematics', date: 'Oct 25, 2023', total: 85, status: 'Needs Review', progress: 92 },
-    { id: 'BCH-091', subject: 'Physics Midterm', date: 'Oct 26, 2023', total: 200, status: 'Processing', progress: 45 },
+  const [batches, setBatches] = useState([]);
+  const [stats, setStats] = useState({
+    totalGraded: 0,
+    autoApproved: 0,
+    needsReview: 0,
+    averageScore: 0
+  });
+
+  const [reevalRequests, setReevalRequests] = useState([
+    { id: 'R-001', student: 'Arjun M.', subject: 'Computer Science 101', testId: 'T-001', reason: 'Q4 marked wrong but answer matches key', status: 'Pending', date: 'Oct 28, 2023' },
+    { id: 'R-002', student: 'Sonia K.', subject: 'Advanced Mathematics', testId: 'T-002', reason: 'Calculation step marks not given', status: 'Pending', date: 'Oct 29, 2023' }
   ]);
+
+  const [insights, setInsights] = useState({
+    topPerformers: ['Arnav (98%)', 'Riya (95%)', 'Kabir (92%)'],
+    weakTopics: ['Calculus - Integration (Q4)', 'Data Structures - Graphs (Q2)']
+  });
 
   useEffect(() => {
     // Attempt to fetch from real API (fallback to mock if it fails/returns null)
     AppApi.getRecentBatches().then(data => {
       if (data && data.length > 0) {
         setBatches(data);
+      }
+    });
+    
+    AppApi.getDashboardStats().then(data => {
+      if (data) {
+        setStats(data);
       }
     });
 
@@ -73,20 +92,23 @@ const Dashboard = () => {
     <div className="dashboard-container animate-fade-in">
       <header className="page-header">
         <div>
-          <h1>Welcome back, Professor</h1>
+          <h1>Welcome back, Arnav</h1>
           <p className="subtitle">Here's what's happening with your evaluations today.</p>
         </div>
-        <button className="btn-primary" onClick={() => navigate('/upload')}>
-          <FileText size={18} />
-          New Evaluation Batch
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <ThemeToggle />
+          <button className="btn-primary" onClick={() => navigate('/upload')}>
+            <FileText size={18} />
+            New Evaluation Batch
+          </button>
+        </div>
       </header>
 
       <section className="stats-grid">
-        <StatCard title="Total Graded Sheets" value="1,248" icon={FileText} trend="+12% this week" colorClass="icon-blue" delay="delay-1" />
-        <StatCard title="Auto-Approved" value="1,082" icon={CheckCircle2} trend="86.7% rate" colorClass="icon-green" delay="delay-2" />
-        <StatCard title="Needs Review" value="166" icon={AlertCircle} trend="-5% this week" colorClass="icon-orange" delay="delay-3" />
-        <PieChartCard title="Average Score" value="78.4%" percentage={78.4} trend="+2.1% avg" delay="delay-3" onClick={() => setChartModalOpen(true)} />
+        <StatCard title="Total Graded Sheets" value={stats.totalGraded.toLocaleString()} icon={FileText} trend="+12% this week" colorClass="icon-blue" delay="delay-1" />
+        <StatCard title="Auto-Approved" value={stats.autoApproved.toLocaleString()} icon={CheckCircle2} trend="86.7% rate" colorClass="icon-green" delay="delay-2" />
+        <StatCard title="Needs Review" value={stats.needsReview.toLocaleString()} icon={AlertCircle} trend="-5% this week" colorClass="icon-orange" delay="delay-3" />
+        <PieChartCard title="Average Score" value={`${stats.averageScore}%`} percentage={stats.averageScore} trend="+2.1% avg" delay="delay-3" onClick={() => setChartModalOpen(true)} />
       </section>
 
       <section className="recent-activity glass-panel animate-fade-in delay-3">
@@ -135,6 +157,91 @@ const Dashboard = () => {
           </table>
         </div>
       </section>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginTop: '2rem' }}>
+        {/* Re-evaluation Requests Section */}
+        <section className="glass-panel animate-fade-in delay-4">
+          <div className="section-header">
+            <h2>Re-evaluation Requests</h2>
+            <span className="badge badge-status-processing">{reevalRequests.length} Pending</span>
+          </div>
+          
+          <div className="table-responsive">
+            <table className="activity-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Subject</th>
+                  <th>Reason</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reevalRequests.map((req) => (
+                  <tr key={req.id}>
+                    <td className="font-semibold">{req.student}</td>
+                    <td>{req.subject}</td>
+                    <td className="text-muted" style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={req.reason}>
+                      {req.reason}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button 
+                          className="btn-secondary" 
+                          style={{ padding: '4px 8px', borderColor: 'var(--success-color)', color: 'var(--success-color)' }} 
+                          onClick={() => alert(`Reviewing ${req.id}`)}
+                          title="Approve"
+                        >
+                          <CheckCircle2 size={14} />
+                        </button>
+                        <button 
+                          className="btn-secondary" 
+                          style={{ padding: '4px 8px', borderColor: 'var(--error-color)', color: 'var(--error-color)' }} 
+                          onClick={() => alert(`Dismissing ${req.id}`)}
+                          title="Dismiss"
+                        >
+                          <ThumbsDown size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Class Insights Section */}
+        <section className="glass-panel animate-fade-in delay-5" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="section-header" style={{ marginBottom: 0 }}>
+            <h2>Class Insights</h2>
+          </div>
+          
+          <div className="stat-card" style={{ background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--success-color)' }}>
+              <Users size={20} />
+              <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Top Performers</h3>
+            </div>
+            <ul style={{ margin: 0, paddingLeft: '1.5rem', color: 'var(--text-primary)' }}>
+              {insights.topPerformers.map((performer, idx) => (
+                <li key={idx} style={{ marginBottom: '5px' }}>{performer}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="stat-card" style={{ background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--warning-color)' }}>
+              <AlertCircle size={20} />
+              <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Weak Topics (Needs Attention)</h3>
+            </div>
+            <ul style={{ margin: 0, paddingLeft: '1.5rem', color: 'var(--text-primary)' }}>
+              {insights.weakTopics.map((topic, idx) => (
+                <li key={idx} style={{ marginBottom: '5px' }}>{topic}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      </div>
 
       {chartModalOpen && (
         <div className="modal-overlay animate-fade-in" onClick={() => setChartModalOpen(false)} style={{

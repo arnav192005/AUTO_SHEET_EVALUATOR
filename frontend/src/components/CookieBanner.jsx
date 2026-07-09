@@ -4,6 +4,17 @@ const CookieBanner = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    const consentData = localStorage.getItem('cookie_consent');
+    if (consentData) {
+      try {
+        const { expires } = JSON.parse(consentData);
+        if (Date.now() < expires) {
+          // Valid consent exists, don't show
+          return;
+        }
+      } catch (e) {}
+    }
+
     // Small delay for better UX
     const timer = setTimeout(() => {
       setIsVisible(true);
@@ -11,12 +22,18 @@ const CookieBanner = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleAccept = () => {
+  const saveConsent = (status) => {
+    const expires = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+    localStorage.setItem('cookie_consent', JSON.stringify({ status, expires }));
     setIsVisible(false);
   };
 
+  const handleAccept = () => {
+    saveConsent('accepted');
+  };
+
   const handleReject = () => {
-    setIsVisible(false);
+    saveConsent('rejected');
   };
 
   if (!isVisible) return null;

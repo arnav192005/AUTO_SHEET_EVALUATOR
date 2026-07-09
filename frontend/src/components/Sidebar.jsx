@@ -7,22 +7,35 @@ const Sidebar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
 
-  const navItems = [
+  const authData = localStorage.getItem('auth');
+  let role = 'teacher';
+  if (authData) {
+    try {
+      const parsed = JSON.parse(authData);
+      role = parsed.role || 'teacher';
+    } catch (e) {}
+  }
+
+  const navItems = role === 'teacher' ? [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Upload Sheets', path: '/upload', icon: UploadCloud },
     { name: 'Review Session', path: '/review', icon: FileCheck2 },
     { name: 'Export Grades', path: '/export', icon: Download },
+  ] : [
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'My Results', path: '/results', icon: FileCheck2 },
   ];
 
   const handleLogout = () => {
+    localStorage.removeItem('auth');
     navigate('/');
   };
 
   return (
     <aside className="sidebar animate-fade-in delay-1">
       <div className="sidebar-logo">
-        <div className="logo-icon">AE</div>
-        <h2>AutoEval</h2>
+        <div className="logo-icon">SS</div>
+        <h2>ScribScore</h2>
       </div>
       
       <nav className="sidebar-nav">
@@ -44,10 +57,10 @@ const Sidebar = () => {
             className={`user-profile card-hover ${profileOpen ? 'open' : ''}`}
             onClick={() => setProfileOpen(!profileOpen)}
           >
-            <div className="avatar">PA</div>
+            <div className="avatar">{role === 'teacher' ? 'AP' : 'ST'}</div>
             <div className="user-info">
-              <p className="name">Prof. Anderson</p>
-              <p className="role">Administrator</p>
+              <p className="name">{role === 'teacher' ? 'Arnav Panwala' : 'Student User'}</p>
+              <p className="role">{role === 'teacher' ? 'Administrator' : 'Student'}</p>
             </div>
           </button>
 

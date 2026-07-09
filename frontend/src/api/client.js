@@ -29,7 +29,9 @@ export const apiClient = {
       body: formData, // fetch automatically sets Content-Type to multipart/form-data with boundaries
     });
     if (!response.ok) {
-      throw new Error(`API Upload request failed: ${response.statusText}`);
+      const errText = await response.text();
+      console.error('Upload Error Response:', errText);
+      throw new Error(`API Upload request failed: ${response.statusText} - ${errText}`);
     }
     return response.json();
   }
@@ -45,5 +47,6 @@ export const AppApi = {
   // Placeholders for future real routes
   getDashboardStats: () => apiClient.get('/exams/stats').catch(() => null),
   getRecentBatches: () => apiClient.get('/exams/recent').catch(() => null),
-  uploadAnswerSheets: (formData) => apiClient.upload('/sheets/upload').catch(() => null),
+  uploadAnswerSheets: (formData) => apiClient.upload('/sheets/upload', formData),
+  getMyResults: () => apiClient.get('/exams/results').catch(() => []),
 };

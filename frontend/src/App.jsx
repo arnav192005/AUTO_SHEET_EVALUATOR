@@ -1,6 +1,8 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
+import StudentDashboard from './pages/StudentDashboard';
+import MyResults from './pages/MyResults';
 import Upload from './pages/Upload';
 import ReviewSession from './pages/ReviewSession';
 import Export from './pages/Export';
@@ -23,15 +25,42 @@ import Terms from './pages/info/Terms';
 import Security from './pages/info/Security';
 import CookieBanner from './components/CookieBanner';
 
-// Force redirect to landing page on hard refresh
-if (window.performance) {
-  const navEntries = window.performance.getEntriesByType("navigation");
-  if (navEntries.length > 0 && navEntries[0].type === "reload") {
-    window.location.hash = "/";
+// Check authentication status
+const isAuthenticated = () => {
+  const authData = localStorage.getItem('auth');
+  if (!authData) return false;
+  
+  try {
+    const { expires } = JSON.parse(authData);
+    if (Date.now() > expires) {
+      localStorage.removeItem('auth');
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return false;
   }
-}
+};
 
-// A simple layout wrapper
+const RoleBasedDashboard = () => {
+  const authData = localStorage.getItem('auth');
+  let role = 'teacher';
+  if (authData) {
+    try {
+      const parsed = JSON.parse(authData);
+      role = parsed.role || 'teacher';
+    } catch (e) {}
+  }
+  return role === 'student' ? <StudentDashboard /> : <Dashboard />;
+};
+
+const ProtectedRoute = ({ children }) => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
 const Layout = ({ children }) => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-color)' }}>
@@ -65,11 +94,12 @@ function App() {
         <Route path="/security" element={<Security />} />
         
         {/* Authenticated Routes wrapped in Layout */}
-        <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-        <Route path="/upload" element={<Layout><Upload /></Layout>} />
-        <Route path="/review" element={<Layout><ReviewSession /></Layout>} />
-        <Route path="/export" element={<Layout><Export /></Layout>} />
-        <Route path="/account" element={<Layout><Account /></Layout>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Layout><RoleBasedDashboard /></Layout></ProtectedRoute>} />
+        <Route path="/results" element={<ProtectedRoute><Layout><MyResults /></Layout></ProtectedRoute>} />
+        <Route path="/upload" element={<ProtectedRoute><Layout><Upload /></Layout></ProtectedRoute>} />
+        <Route path="/review" element={<ProtectedRoute><Layout><ReviewSession /></Layout></ProtectedRoute>} />
+        <Route path="/export" element={<ProtectedRoute><Layout><Export /></Layout></ProtectedRoute>} />
+        <Route path="/account" element={<ProtectedRoute><Layout><Account /></Layout></ProtectedRoute>} />
       </Routes>
     </HashRouter>
   );
