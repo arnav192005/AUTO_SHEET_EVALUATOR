@@ -15,7 +15,9 @@ const Landing = () => {
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrStatus, setOcrStatus] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [geminiApiKey, setGeminiApiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || "");
+  const [geminiApiKey, setGeminiApiKey] = useState(
+    import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('geminiApiKey') || ""
+  );
   const [showSettings, setShowSettings] = useState(false);
   const [imageRotation, setImageRotation] = useState(0);
   const fileInputRef = useRef(null);
