@@ -68,7 +68,7 @@ const CookieBanner = () => {
           🍪 We value your privacy
         </h3>
         <p style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>
-          We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies.
+          We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic.
         </p>
       </div>
       <div style={{ display: 'flex', gap: '12px' }}>
