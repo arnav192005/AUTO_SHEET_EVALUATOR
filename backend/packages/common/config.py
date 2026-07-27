@@ -22,9 +22,6 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
-        # Tell pydantic-settings to split list[str] fields on commas
-        # (avoids JSON-parsing a plain "a,b,c" string which raises JSONDecodeError)
-        env_list_delimiter=",",
     )
 
     # ── App ──────────────────────────────────────────────────────────────────
