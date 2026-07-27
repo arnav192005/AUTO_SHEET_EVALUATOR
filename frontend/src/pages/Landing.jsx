@@ -645,32 +645,6 @@ const Landing = () => {
               An open platform to modernize academic assessment and simplify grading.
             </p>
           </div>
-          <div className="footer-col">
-            <h4>Product</h4>
-            <ul className="footer-links">
-              <li><Link to="/features">Features</Link></li>
-              <li><Link to="/integrations">Integrations</Link></li>
-              <li><Link to="/documentation">Documentation</Link></li>
-              <li><Link to="/changelog">Changelog</Link></li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Company</h4>
-            <ul className="footer-links">
-              <li><Link to="/about">About Us</Link></li>
-              <li><Link to="/careers">Careers</Link></li>
-              <li><Link to="/blog">Blog</Link></li>
-              <li><Link to="/contact">Contact</Link></li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Legal</h4>
-            <ul className="footer-links">
-              <li><Link to="/privacy">Privacy Policy</Link></li>
-              <li><Link to="/terms">Terms of Service</Link></li>
-              <li><Link to="/security">Security</Link></li>
-            </ul>
-          </div>
         </div>
         <div className="footer-bottom">
           <p>© {new Date().getFullYear()} ScribScore Educational Technologies. All rights reserved.</p>
