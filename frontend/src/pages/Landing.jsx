@@ -15,11 +15,11 @@ const Landing = () => {
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrStatus, setOcrStatus] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
-  
+
   // Obfuscated key to bypass basic static scrapers while still allowing the live demo to work
   const p1 = "AQ.Ab8RN6Jj8St";
   const p2 = "ewzdza3wUbsVGIXofzW5eIJyT1_wC7gdnaiRwZQ";
-  
+
   const [geminiApiKey, setGeminiApiKey] = useState(
     import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('geminiApiKey') || (p1 + p2)
   );
@@ -36,7 +36,7 @@ const Landing = () => {
       setExtractedText(null);
       setDemoResult(null);
       setOcrProgress(0);
-      
+
       // Auto-rotate heuristic for document photos:
       // Answer sheets are typically portrait. If the image is landscape, auto-rotate it.
       const img = new Image();
@@ -63,14 +63,14 @@ const Landing = () => {
         try {
           setOcrStatus('Performing OCR Scan & Analysis via Gemini...');
           setOcrProgress(0.2);
-          
+
           // Convert file to base64
           const base64String = await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.readAsDataURL(uploadedFile);
           });
-          
+
           setOcrStatus('Sending image to Gemini 2.5 Flash...');
           setOcrProgress(0.5);
 
@@ -103,30 +103,30 @@ const Landing = () => {
           }
           const data = await response.json();
           const aiText = data.candidates[0].content.parts[0].text;
-          
+
           // Parse the JSON out of the response (removing markdown code blocks if any)
           const jsonMatch = aiText.match(/```(?:json)?\n?([\s\S]*?)```/) || [null, aiText];
           const jsonString = jsonMatch[1].trim();
-          
+
           try {
-             const parsed = JSON.parse(jsonString);
-             setExtractedText(parsed.extractedText || "No text extracted.");
-             
-             for (let i = 1; i <= 10; i++) {
-               await new Promise(r => setTimeout(r, 50));
-               setOcrProgress(i / 10);
-             }
-             
-             setTimeout(() => {
-               setIsEvaluating(false);
-               setDemoResult(parsed);
-             }, 500);
-             return; 
+            const parsed = JSON.parse(jsonString);
+            setExtractedText(parsed.extractedText || "No text extracted.");
+
+            for (let i = 1; i <= 10; i++) {
+              await new Promise(r => setTimeout(r, 50));
+              setOcrProgress(i / 10);
+            }
+
+            setTimeout(() => {
+              setIsEvaluating(false);
+              setDemoResult(parsed);
+            }, 500);
+            return;
           } catch (e) {
-             console.error(e);
-             setExtractedText(`Failed to parse AI response: ${aiText}`);
-             setIsEvaluating(false);
-             return;
+            console.error(e);
+            setExtractedText(`Failed to parse AI response: ${aiText}`);
+            setIsEvaluating(false);
+            return;
           }
 
         } catch (error) {
@@ -137,7 +137,7 @@ const Landing = () => {
         }
       } else {
         setOcrStatus('API Key Missing! Using Mock Engine...');
-        
+
         for (let i = 1; i <= 10; i++) {
           await new Promise(r => setTimeout(r, 150));
           setOcrProgress(i / 10);
@@ -195,7 +195,7 @@ const Landing = () => {
       });
     }, 1500);
   };
-  
+
   const resetDemo = () => {
     setDemoResult(null);
     setIsEvaluating(false);
@@ -224,7 +224,7 @@ const Landing = () => {
         }
       });
     }, { threshold: 0.15 });
-    
+
     setTimeout(() => {
       document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
     }, 100);
@@ -246,7 +246,7 @@ const Landing = () => {
   return (
     <div className="landing-container animate-fade-in">
       <div className="cursor-glow"></div>
-      
+
       <nav className="landing-nav">
         <Link to="/" className="landing-logo">
           <Brain size={28} />
@@ -295,8 +295,8 @@ const Landing = () => {
             <h3 style={{ marginTop: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings size={18} /> Gemini API Configuration</h3>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Enter your Gemini API key to enable real AI OCR. Without this, the demo runs in a simulated fallback mode.</p>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input 
-                type="password" 
+              <input
+                type="password"
                 placeholder="AIzaSy..."
                 value={geminiApiKey}
                 onChange={(e) => {
@@ -319,45 +319,45 @@ const Landing = () => {
             </div>
             <div className="panel-body">
               <div className="mock-upload-area" style={{ padding: uploadedImageUrl ? '0' : '2rem' }}>
-                  {uploadedImageUrl ? (
-                    uploadedFile && !uploadedFile.type.startsWith('image/') ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', minHeight: '200px', width: '100%' }}>
-                        <FileText size={48} color="#a0aec0" style={{ marginBottom: '1rem' }} />
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#a0aec0', wordBreak: 'break-all', textAlign: 'center' }}>{uploadedFile.name}</span>
-                        <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '500' }}>Document Ready for OCR Scan</p>
-                      </div>
-                    ) : (
-                      <div style={{ position: 'relative', display: 'inline-block' }}>
-                        <img 
-                          src={uploadedImageUrl} 
-                          alt="Uploaded math" 
-                          style={{ 
-                            maxWidth: '100%', 
-                            maxHeight: '400px', 
-                            borderRadius: '8px', 
-                            transform: `rotate(${imageRotation}deg)`, 
-                            transition: 'transform 0.3s ease' 
-                          }} 
-                        />
-                        <button 
-                          onClick={() => setImageRotation(prev => prev + 90)}
-                          className="btn-secondary"
-                          style={{ 
-                            position: 'absolute', 
-                            top: '10px', 
-                            right: '10px', 
-                            padding: '0.4rem 0.8rem',
-                            margin: 0,
-                            fontSize: '0.8rem',
-                            background: 'rgba(10, 10, 15, 0.8)',
-                            border: '1px solid rgba(255, 255, 255, 0.2)'
-                          }}
-                        >
-                          ↻ Rotate
-                        </button>
-                      </div>
-                    )
+                {uploadedImageUrl ? (
+                  uploadedFile && !uploadedFile.type.startsWith('image/') ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', minHeight: '200px', width: '100%' }}>
+                      <FileText size={48} color="#a0aec0" style={{ marginBottom: '1rem' }} />
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#a0aec0', wordBreak: 'break-all', textAlign: 'center' }}>{uploadedFile.name}</span>
+                      <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '500' }}>Document Ready for OCR Scan</p>
+                    </div>
                   ) : (
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <img
+                        src={uploadedImageUrl}
+                        alt="Uploaded math"
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '400px',
+                          borderRadius: '8px',
+                          transform: `rotate(${imageRotation}deg)`,
+                          transition: 'transform 0.3s ease'
+                        }}
+                      />
+                      <button
+                        onClick={() => setImageRotation(prev => prev + 90)}
+                        className="btn-secondary"
+                        style={{
+                          position: 'absolute',
+                          top: '10px',
+                          right: '10px',
+                          padding: '0.4rem 0.8rem',
+                          margin: 0,
+                          fontSize: '0.8rem',
+                          background: 'rgba(10, 10, 15, 0.8)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)'
+                        }}
+                      >
+                        ↻ Rotate
+                      </button>
+                    </div>
+                  )
+                ) : (
                   <div className="math-equation-mock">
                     <p>Q: Find the roots of $x^2 - 5x + 6 = 0$</p>
                     <div className="handwriting-mock">
@@ -373,8 +373,8 @@ const Landing = () => {
                   <input type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" style={{ display: 'none' }} onChange={handleFileUpload} disabled={isEvaluating} />
                 </label>
                 {!demoResult ? (
-                  <button 
-                    className="btn-primary evaluate-btn" 
+                  <button
+                    className="btn-primary evaluate-btn"
                     onClick={runDemoEvaluation}
                     disabled={isEvaluating}
                   >
@@ -395,7 +395,7 @@ const Landing = () => {
 
           {/* Right Panel: AI Result */}
           <div className="demo-panel output-panel">
-             <div className="panel-header">
+            <div className="panel-header">
               <span className="dot" style={{ background: '#ff5f56' }}></span>
               <span className="dot" style={{ background: '#ffbd2e' }}></span>
               <span className="dot" style={{ background: '#27c93f' }}></span>
@@ -448,7 +448,7 @@ const Landing = () => {
                     <span className="score-label">Final Score</span>
                     <span className="score-value">{demoResult.score}</span>
                   </div>
-                  
+
                   <div className="step-feedback-list">
                     {demoResult.steps.map((step, idx) => (
                       <div key={idx} className={`step-item ${step.status}`}>
@@ -496,9 +496,9 @@ const Landing = () => {
       </section>
       <section className="features-section section-padding section-border-bottom">
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 className="section-title reveal-on-scroll">Everything you need, <br/>all in one place</h2>
+          <h2 className="section-title reveal-on-scroll">Everything you need, <br />all in one place</h2>
         </div>
-        
+
         <div className="features-grid-3">
           <div className="feature-card reveal-on-scroll">
             <div className="feature-icon-wrapper"><Layers size={28} /></div>
@@ -506,7 +506,7 @@ const Landing = () => {
             <p className="feature-desc">Leveraging advanced machine learning, ScribeScore processes raw handwritten answers through specialized OCR and semantic analysis stages for unparalleled accuracy.</p>
             <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
           </div>
-          
+
           <div className="feature-card reveal-on-scroll">
             <div className="feature-icon-wrapper"><ScanText size={28} /></div>
             <h3 className="feature-title">Handwritten Answer Recognition</h3>
@@ -527,22 +527,22 @@ const Landing = () => {
       <section className="pipeline-section section-padding section-border-bottom">
         <div className="pipeline-grid">
           <div>
-            <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'left' }}>How ScribScore <br/>actually works</h2>
+            <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'left' }}>How ScribScore <br />actually works</h2>
             <p className="section-subtitle">
               A transparent, 4-step workflow that transforms raw, messy answer sheets into finalized, analytical grade reports.
             </p>
             <Link to="/login" className="btn-primary">Try the Workflow</Link>
           </div>
-          
+
           <div className="agentic-workflow-wrapper reveal-on-scroll">
 
             {/* Visual Nodes */}
             <div className="agentic-nodes-container">
               {[
-                { title: 'Scan', desc: 'Batch ingest PDFs', icon: <ScanText size={20}/> },
-                { title: 'Vision', desc: 'Handwriting OCR', icon: <Zap size={20}/> },
-                { title: 'Evaluate', desc: 'Semantic grading', icon: <Brain size={20}/> },
-                { title: 'Verify', desc: 'Teacher approval', icon: <ShieldCheck size={20}/> }
+                { title: 'Scan', desc: 'Batch ingest PDFs', icon: <ScanText size={20} /> },
+                { title: 'Vision', desc: 'Handwriting OCR', icon: <Zap size={20} /> },
+                { title: 'Evaluate', desc: 'Semantic grading', icon: <Brain size={20} /> },
+                { title: 'Verify', desc: 'Teacher approval', icon: <ShieldCheck size={20} /> }
               ].map((step, index) => (
                 <React.Fragment key={index}>
                   <div className={`agentic-node ${activeWorkflowStep >= index ? 'active' : ''} ${activeWorkflowStep === index ? 'pulsing' : ''}`} style={{ animationDelay: `${index * 0.1}s` }}>
@@ -573,19 +573,19 @@ const Landing = () => {
 
         <div className="standards-grid">
           <div className="standard-card">
-            <h3><ScanText size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }}/> Handwriting OCR</h3>
+            <h3><ScanText size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Handwriting OCR</h3>
             <p style={{ color: 'var(--text-secondary)' }}>State-of-the-art optical character recognition for messy handwriting.</p>
           </div>
           <div className="standard-card">
-            <h3><BarChart3 size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }}/> Real-Time Analytics</h3>
+            <h3><BarChart3 size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Real-Time Analytics</h3>
             <p style={{ color: 'var(--text-secondary)' }}>Instantly identify knowledge gaps across the entire classroom.</p>
           </div>
           <div className="standard-card">
-            <h3><Layers size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }}/> Curated Criteria</h3>
+            <h3><Layers size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Curated Criteria</h3>
             <p style={{ color: 'var(--text-secondary)' }}>Standardize evaluations across multiple graders perfectly.</p>
           </div>
           <div className="standard-card">
-            <h3><ShieldCheck size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }}/> Verification Audit</h3>
+            <h3><ShieldCheck size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Verification Audit</h3>
             <p style={{ color: 'var(--text-secondary)' }}>Human-in-the-loop flows to review flagged low-confidence grades.</p>
           </div>
         </div>
@@ -595,15 +595,15 @@ const Landing = () => {
       <section className="faq-section section-padding section-border-bottom">
         <div style={{ textAlign: 'center', marginBottom: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center', width: '100%' }}>
-            <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Got questions?</span><br/>
+            <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Got questions?</span><br />
             <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>We have answers.</span>
           </h2>
         </div>
-        
+
         <div className="faq-container">
           {faqs.map((faq, index) => (
             <div key={index} className="faq-item">
-              <div 
+              <div
                 className="faq-question"
                 onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
               >
@@ -629,7 +629,7 @@ const Landing = () => {
         <Link to="/login" className="btn-white">
           Try ScribScore Now <ArrowRight size={20} />
         </Link>
-        
+
 
       </section>
 
@@ -646,9 +646,30 @@ const Landing = () => {
             </p>
           </div>
           <div className="footer-col">
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-              Automated handwritten answer sheet evaluation powered by AI & OCR.
-            </p>
+            <h4>Product</h4>
+            <ul className="footer-links">
+              <li><Link to="/features">Features</Link></li>
+              <li><Link to="/integrations">Integrations</Link></li>
+              <li><Link to="/documentation">Documentation</Link></li>
+              <li><Link to="/changelog">Changelog</Link></li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4>Company</h4>
+            <ul className="footer-links">
+              <li><Link to="/about">About Us</Link></li>
+              <li><Link to="/careers">Careers</Link></li>
+              <li><Link to="/blog">Blog</Link></li>
+              <li><Link to="/contact">Contact</Link></li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4>Legal</h4>
+            <ul className="footer-links">
+              <li><Link to="/privacy">Privacy Policy</Link></li>
+              <li><Link to="/terms">Terms of Service</Link></li>
+              <li><Link to="/security">Security</Link></li>
+            </ul>
           </div>
         </div>
         <div className="footer-bottom">
