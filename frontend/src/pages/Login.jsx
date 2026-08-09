@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import './Login.css';
 
 const Login = () => {
@@ -56,7 +57,12 @@ const Login = () => {
   };
 
   return (
-    <div className="login-page animate-fade-in">
+    <div className="login-page animate-fade-in" style={{ position: 'relative' }}>
+      <div style={{ position: 'absolute', top: '2rem', left: '2rem', zIndex: 100 }}>
+        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#FAFAFA', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 600, padding: '0.6rem 1.2rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', backdropFilter: 'blur(10px)', transition: 'all 0.2s ease' }} onMouseOver={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'} onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-glass)'}>
+          <ArrowLeft size={18} /> Back to Home
+        </Link>
+      </div>
       <div className="flip-container">
         <input type="checkbox" id="signup_toggle" />
         <div className="form-wrapper">

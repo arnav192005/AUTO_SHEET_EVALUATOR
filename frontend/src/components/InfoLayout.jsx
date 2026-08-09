@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Brain } from 'lucide-react';
+import { Brain, ArrowLeft } from 'lucide-react';
 import '../pages/Landing.css';
 
 const InfoLayout = ({ children, title }) => {
@@ -19,7 +19,9 @@ const InfoLayout = ({ children, title }) => {
           ScribScore
         </Link>
         <div className="nav-links">
-          <Link to="/login" className="btn-secondary">Login</Link>
+          <Link to="/" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <ArrowLeft size={16} /> Back to Home
+          </Link>
           <Link to="/login" className="btn-primary">Get Started</Link>
         </div>
       </nav>
@@ -38,15 +40,23 @@ const InfoLayout = ({ children, title }) => {
 
       {/* 3. Footer */}
       <footer className="landing-footer" style={{ marginTop: 'auto' }}>
-        <div className="footer-grid">
+        <div className="footer-grid" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '2rem' }}>
           <div className="footer-col">
             <Link to="/" className="footer-logo">
               <Brain size={24} />
               ScribScore
             </Link>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: '250px' }}>
-              An open platform to modernize academic assessment and simplify grading.
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: '300px' }}>
+              An open AI platform to modernize academic assessment and simplify handwritten paper grading.
             </p>
+          </div>
+
+          <div className="footer-col">
+            <h4>Legal</h4>
+            <ul>
+              <li><Link to="/privacy">Privacy Policy</Link></li>
+              <li><Link to="/terms">Terms of Service</Link></li>
+            </ul>
           </div>
         </div>
         <div className="footer-bottom">

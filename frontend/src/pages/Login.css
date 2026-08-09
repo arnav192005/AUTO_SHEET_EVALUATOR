@@ -5,7 +5,7 @@
   justify-content: center;
   min-height: 100vh;
   background-color: var(--bg-color);
-  background-image: 
+  background-image:
     repeating-linear-gradient(45deg, var(--border-glass) 0, var(--border-glass) 1px, transparent 1px, transparent 20px),
     repeating-linear-gradient(-45deg, var(--border-glass) 0, var(--border-glass) 1px, transparent 1px, transparent 20px);
   padding: 2rem;
@@ -54,11 +54,12 @@
   height: 620px;
 }
 
-.flip-container #signup_toggle:checked + .form-wrapper {
+.flip-container #signup_toggle:checked+.form-wrapper {
   transform: rotateY(-180deg);
 }
 
-.form_front, .form_back {
+.form_front,
+.form_back {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -77,9 +78,9 @@
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-glass);
-  box-shadow: inset 2px 2px 10px rgba(0,0,0,1),
-              inset -1px -1px 5px rgba(255, 255, 255, 0.1),
-              0 0 40px rgba(255, 255, 255, 0.05);
+  box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 1),
+    inset -1px -1px 5px rgba(255, 255, 255, 0.1),
+    0 0 40px rgba(255, 255, 255, 0.05);
 }
 
 .form_back {
@@ -100,7 +101,7 @@
   border: 1px solid var(--border-glass);
   font-family: var(--font-sans);
   font-size: 1rem;
-  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .flip-input::placeholder {
@@ -116,7 +117,7 @@
   transform: scale(1.02);
   border-color: rgba(255, 255, 255, 0.5);
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.1),
-              inset 2px 2px 5px rgba(0,0,0,0.5);
+    inset 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .flip-btn {

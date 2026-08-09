@@ -1,15 +1,51 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, File, X, CheckCircle } from 'lucide-react';
+import { UploadCloud, File, X, AlertCircle, Layers, CheckCircle2, Loader2, Zap } from 'lucide-react';
 import { AppApi } from '../api/client';
 import './Upload.css';
+
+const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'];
+const MAX_BATCH_SIZE = 50;
 
 const Upload = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState([]);
+  const [examId, setExamId] = useState('1');
+  const [studentRoll, setStudentRoll] = useState('2024CS001');
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [processedFileCount, setProcessedFileCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const navigate = useNavigate();
+
+  const validateFiles = (fileList, currentFiles) => {
+    const valid = [];
+    let invalidCount = 0;
+
+    fileList.forEach(file => {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ALLOWED_EXTENSIONS.includes(ext)) {
+        valid.push(file);
+      } else {
+        invalidCount++;
+      }
+    });
+
+    const totalAllowed = MAX_BATCH_SIZE - currentFiles.length;
+    if (valid.length > totalAllowed) {
+      setErrorMessage(`Batch upload limit is 50 files. First ${totalAllowed} file(s) were added to the batch.`);
+      return valid.slice(0, Math.max(0, totalAllowed));
+    }
+
+    if (invalidCount > 0) {
+      setErrorMessage(`Rejected ${invalidCount} unsupported file(s). Only PDF, JPG, and PNG files are allowed.`);
+    } else {
+      setErrorMessage(null);
+    }
+
+    return valid;
+  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -25,51 +61,107 @@ const Upload = () => {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const newFiles = Array.from(e.dataTransfer.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      const validFiles = validateFiles(droppedFiles, files);
+      setFiles((prev) => [...prev, ...validFiles]);
     }
   };
 
   const handleFileSelect = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+      const selectedFiles = Array.from(e.target.files);
+      const validFiles = validateFiles(selectedFiles, files);
+      setFiles((prev) => [...prev, ...validFiles]);
     }
+  };
+
+  const load50SampleBatch = () => {
+    const sampleBatch = [];
+    for (let i = 1; i <= 50; i++) {
+      const dummyContent = `Sample Exam Sheet #${i}\nStudent Roll: 2024CS${String(i).padStart(3, '0')}`;
+      const blob = new Blob([dummyContent], { type: 'text/plain' });
+      const file = new File([blob], `answer_sheet_student_${String(i).padStart(2, '0')}.pdf`, { type: 'application/pdf' });
+      sampleBatch.push(file);
+    }
+    setFiles(sampleBatch);
+    setErrorMessage(null);
   };
 
   const removeFile = (index) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const simulateUpload = async () => {
+  const clearAllFiles = () => {
+    setFiles([]);
+    setErrorMessage(null);
+  };
+
+  const handleUpload = async () => {
+    if (files.length === 0) {
+      setErrorMessage("Please select between 1 to 50 answer sheet files to evaluate.");
+      return;
+    }
+
     setUploading(true);
-    
-    // Simulate real API call (will just catch error or return null currently)
+    setErrorMessage(null);
+    setUploadProgress(10);
+    setProcessedFileCount(1);
+
+    // Simulate progress interval for multi-file batch evaluation
+    const progressInterval = setInterval(() => {
+      setProcessedFileCount((prevCount) => {
+        const next = prevCount + 1;
+        if (next >= files.length) {
+          clearInterval(progressInterval);
+          setUploadProgress(100);
+          return files.length;
+        }
+        setUploadProgress(Math.round((next / files.length) * 100));
+        return next;
+      });
+    }, Math.max(100, Math.round(1500 / files.length)));
+
     const formData = new FormData();
+    formData.append('exam_id', examId);
+    formData.append('student_roll', studentRoll);
     files.forEach(file => formData.append('files', file));
-    
+
     try {
       const response = await AppApi.uploadAnswerSheets(formData);
-      
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
       const uploadedFileUrl = files.length > 0 ? URL.createObjectURL(files[0]) : null;
       const uploadedFileType = files.length > 0 ? files[0].type : null;
-      
+
       if (uploadedFileUrl) {
         sessionStorage.setItem('previewFileUrl', uploadedFileUrl);
         sessionStorage.setItem('previewFileType', uploadedFileType);
       }
 
+      let sheetId = response.sheet_id;
       if (response && response.results && response.results.length > 0) {
-        sessionStorage.setItem('evaluationData', JSON.stringify(response.results[0]));
+        const evalData = response.results[0];
+        sessionStorage.setItem('evaluationData', JSON.stringify(evalData));
+        if (evalData.sheetId) sheetId = evalData.sheetId;
       }
-      
+
       setUploading(false);
       setFiles([]);
-      alert("Batch uploaded successfully and sent for AI Evaluation!");
-      navigate('/review', { state: { fileUrl: uploadedFileUrl, fileType: uploadedFileType } });
+      navigate('/review', { 
+        state: { 
+          sheetId, 
+          fileUrl: uploadedFileUrl, 
+          fileType: uploadedFileType,
+          evaluationData: response.results ? response.results[0] : null
+        } 
+      });
     } catch (error) {
-      console.error('Upload failed', error);
+      clearInterval(progressInterval);
+      console.error('Upload failed:', error);
       setUploading(false);
+      setErrorMessage(error.message || "Failed to upload and evaluate answer sheets. Please ensure backend is active.");
     }
   };
 
@@ -78,9 +170,78 @@ const Upload = () => {
       <header className="page-header">
         <div>
           <h1>Upload Answer Sheets</h1>
-          <p className="subtitle">Upload scanned PDFs or images for AI evaluation.</p>
+          <p className="subtitle">Upload 1 to 50 scanned PDFs or images (JPG, PNG) for batch AI evaluation.</p>
         </div>
       </header>
+
+      {errorMessage && (
+        <div className="glass-panel" style={{ padding: '1rem', marginBottom: '1.5rem', borderColor: 'var(--error-color)', color: 'var(--error-color)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <AlertCircle size={20} />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Exam & Student Details Form */}
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <h3 style={{ fontSize: '1.1rem', margin: 0 }}>Evaluation Metadata</h3>
+          <span style={{ fontSize: '0.85rem', color: files.length >= 50 ? '#FF3535' : 'var(--accent-primary)', background: 'rgba(255,255,255,0.04)', padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-glass)', fontWeight: 600 }}>
+            Batch Capacity: {files.length} / 50 Files Selected
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Exam ID:</label>
+            <input 
+              type="number" 
+              min="1"
+              step="1"
+              value={examId} 
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '') {
+                  setExamId('');
+                } else {
+                  const num = parseInt(val, 10);
+                  setExamId(isNaN(num) || num < 1 ? '1' : num.toString());
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === '-' || e.key === 'e') {
+                  e.preventDefault();
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.8rem',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Student Roll Number Prefix:</label>
+            <input 
+              type="text" 
+              value={studentRoll} 
+              onChange={(e) => setStudentRoll(e.target.value)}
+              placeholder="e.g. 2024CS001"
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.8rem',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)'
+              }}
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="upload-content">
         <div 
@@ -93,16 +254,17 @@ const Upload = () => {
             <div className="upload-icon-wrapper">
               <UploadCloud size={48} className="upload-icon" />
             </div>
-            <h3>Drag & Drop your files or folders here</h3>
-            <p className="text-muted">Supports single files or bulk folder uploads (PDF, JPG, PNG)</p>
+            <h3>Drag & Drop up to 50 files here</h3>
+            <p className="text-muted">Accepted formats: PDF, JPG, PNG (Max 50 files per batch)</p>
             
             <div className="divider"><span>OR</span></div>
             
-            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <input 
                 type="file" 
                 id="file-upload" 
                 multiple 
+                accept=".pdf,.jpg,.jpeg,.png"
                 className="hidden-input" 
                 onChange={handleFileSelect}
               />
@@ -121,26 +283,55 @@ const Upload = () => {
               <label htmlFor="folder-upload" className="btn-secondary">
                 Browse Folder (Bulk)
               </label>
+
+              <button type="button" onClick={load50SampleBatch} className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', border: '1px solid rgba(0, 242, 254, 0.4)', color: 'var(--accent-primary)' }}>
+                <Zap size={16} /> Load 50 Sample Batch
+              </button>
             </div>
           </div>
         </div>
 
+        {uploading && (
+          <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid var(--accent-primary)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
+              <span style={{ fontWeight: 600, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Loader2 size={18} className="animate-spin" style={{ color: 'var(--accent-primary)' }} />
+                Evaluating Batch Papers: {processedFileCount} of {files.length} Completed
+              </span>
+              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)', fontWeight: 700 }}>
+                {uploadProgress}%
+              </span>
+            </div>
+            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'linear-gradient(90deg, #00F2FE 0%, #4FACFE 100%)', transition: 'width 0.3s ease' }}></div>
+            </div>
+          </div>
+        )}
+
         {files.length > 0 && (
           <div className="file-list glass-panel animate-fade-in delay-1">
-            <div className="file-list-header">
-              <h3>Ready to Upload ({files.length})</h3>
-              <button 
-                className="btn-primary" 
-                onClick={simulateUpload}
-                disabled={uploading}
-              >
-                {uploading ? 'Processing...' : 'Start Evaluation'}
-              </button>
+            <div className="file-list-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ margin: 0 }}>Batch Ready ({files.length} / 50 Files)</h3>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>All 50 sheets will be evaluated against rubric in parallel.</span>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button type="button" onClick={clearAllFiles} className="btn-secondary" style={{ padding: '0.6rem 1rem', fontSize: '0.85rem' }}>
+                  Clear All
+                </button>
+                <button 
+                  className="btn-primary" 
+                  onClick={handleUpload}
+                  disabled={uploading}
+                >
+                  {uploading ? `Processing (${processedFileCount}/${files.length})...` : `Start Batch Evaluation (${files.length} Papers)`}
+                </button>
+              </div>
             </div>
             
-            <div className="files-grid">
+            <div className="files-grid" style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
               {files.map((file, idx) => (
-                <div key={idx} className="file-item animate-fade-in" style={{ animationDelay: `${idx * 0.05}s` }}>
+                <div key={idx} className="file-item animate-fade-in" style={{ animationDelay: `${Math.min(idx, 20) * 0.03}s` }}>
                   <div className="file-info">
                     <div className="file-icon">
                       <File size={20} />

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, UploadCloud, FileCheck2, Settings, Download, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, UploadCloud, FileCheck2, Settings, Download, LogOut, User, Info } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = () => {
@@ -21,9 +21,11 @@ const Sidebar = () => {
     { name: 'Upload Sheets', path: '/upload', icon: UploadCloud },
     { name: 'Review Session', path: '/review', icon: FileCheck2 },
     { name: 'Export Grades', path: '/export', icon: Download },
+    { name: 'About', path: '/about', icon: Info },
   ] : [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'My Results', path: '/results', icon: FileCheck2 },
+    { name: 'About', path: '/about', icon: Info },
   ];
 
   const handleLogout = () => {

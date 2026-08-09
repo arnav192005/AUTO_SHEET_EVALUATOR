@@ -1,9 +1,50 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import './Landing.css';
+const SequentialTypewriterText = ({ text, isActive, onComplete, speed = 30 }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [hasCompleted, setHasCompleted] = useState(false);
+  const onCompleteRef = useRef(onComplete);
+
+  React.useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  React.useEffect(() => {
+    if (!isActive || hasCompleted) return;
+
+    let timeoutId;
+    let index = 0;
+
+    const startTyping = () => {
+      if (index <= text.length) {
+        setDisplayedText(text.slice(0, index));
+        index++;
+        timeoutId = setTimeout(startTyping, speed);
+      } else {
+        setHasCompleted(true);
+        if (onCompleteRef.current) {
+          setTimeout(() => {
+            if (onCompleteRef.current) onCompleteRef.current();
+          }, 200);
+        }
+      }
+    };
+
+    timeoutId = setTimeout(startTyping, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [isActive, hasCompleted, text, speed]);
+
+  return (
+    <span className="typewriter-text-wrapper">
+      {displayedText}
+      {isActive && !hasCompleted && <span className="typewriter-cursor">|</span>}
+    </span>
+  );
+};
 
 const Landing = () => {
   const [openFaq, setOpenFaq] = useState(0);
@@ -25,7 +66,26 @@ const Landing = () => {
   );
   const [showSettings, setShowSettings] = useState(false);
   const [imageRotation, setImageRotation] = useState(0);
+  const [activeFeatureCardIndex, setActiveFeatureCardIndex] = useState(0);
+  const featuresRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && activeFeatureCardIndex === 0) {
+          setActiveFeatureCardIndex(1);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    if (featuresRef.current) {
+      observer.observe(featuresRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [activeFeatureCardIndex]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -207,11 +267,42 @@ const Landing = () => {
   };
 
   React.useEffect(() => {
+    let mouseX = -100;
+    let mouseY = -100;
+    let ringX = -100;
+    let ringY = -100;
+    let rafId = null;
+
+    const dotEl = document.querySelector('.custom-cursor-dot');
+    const ringEl = document.querySelector('.custom-cursor-ring');
+    const glowEl = document.querySelector('.cursor-glow');
+
     const handleMouseMove = (e) => {
-      document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
-      document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
+      mouseX = e.clientX;
+      mouseY = e.clientY;
     };
-    window.addEventListener('mousemove', handleMouseMove);
+
+    const updateCursorPosition = () => {
+      if (dotEl) {
+        dotEl.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+      }
+
+      ringX += (mouseX - ringX) * 0.35;
+      ringY += (mouseY - ringY) * 0.35;
+
+      if (ringEl) {
+        ringEl.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+      }
+
+      if (glowEl) {
+        glowEl.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+      }
+
+      rafId = requestAnimationFrame(updateCursorPosition);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    rafId = requestAnimationFrame(updateCursorPosition);
 
     const workflowInterval = setInterval(() => {
       setActiveWorkflowStep((prev) => (prev + 1) % 4);
@@ -231,6 +322,7 @@ const Landing = () => {
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
       clearInterval(workflowInterval);
       observer.disconnect();
     };
@@ -244,413 +336,500 @@ const Landing = () => {
   ];
 
   return (
-    <div className="landing-container animate-fade-in">
+    <>
       <div className="cursor-glow"></div>
-
-      <nav className="landing-nav">
-        <Link to="/" className="landing-logo">
-          <Brain size={28} />
-          ScribScore
-        </Link>
-        <div className="nav-links">
-          <Link to="/login" className="btn-secondary">Login</Link>
-          <Link to="/login" className="btn-primary">Get Started</Link>
-        </div>
-      </nav>
-
-      <header className="hero-section section-padding section-border-bottom">
-        <div className="announcement-chip animate-fade-in delay-1">
-          New: Fast & Accurate AI Evaluation
-        </div>
-        <h1 className="hero-title animate-fade-in delay-1" style={{ fontSize: 'clamp(4rem, 12vw, 10rem)', letterSpacing: '-0.05em', lineHeight: '0.95', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
-          <span style={{ color: 'var(--text-primary)' }}>SCRIB</span>
-          <span style={{ color: 'var(--text-tertiary)' }}>SCORE.</span>
-        </h1>
-        <p className="hero-subtitle animate-fade-in delay-2" style={{ fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>
-          ScribeScore is an AI-powered intelligent exam grading system that automatically evaluates handwritten student answer sheets using a multi-stage AI pipeline
-        </p>
-        <div className="hero-ctas animate-fade-in delay-3">
-          <Link to="/login" className="btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
-            Try ScribScore Now
+      <div className="custom-cursor-dot"></div>
+      <div className="custom-cursor-ring"></div>
+      <div className="landing-container animate-fade-in">
+        <nav className="landing-nav">
+          <Link to="/" className="landing-logo">
+            <Brain size={28} />
+            ScribScore
           </Link>
-          <Link to="/login" className="btn-secondary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
-            View Documentation
-          </Link>
-        </div>
-      </header>
-
-      <section className="demo-section section-padding section-border-bottom">
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h2 className="section-title reveal-on-scroll" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-            Try it Live
-            <button className="btn-icon" onClick={() => setShowSettings(!showSettings)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }} title="API Settings">
-              <Settings size={28} />
-            </button>
-          </h2>
-          <p className="section-subtitle" style={{ margin: '0 auto' }}>Experience the speed and accuracy of ScribScore's AI grading in real-time.</p>
-        </div>
-
-        {showSettings && (
-          <div className="demo-settings animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto 2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid var(--border-glass)', textAlign: 'left' }}>
-            <h3 style={{ marginTop: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings size={18} /> Gemini API Configuration</h3>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Enter your Gemini API key to enable real AI OCR. Without this, the demo runs in a simulated fallback mode.</p>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input
-                type="password"
-                placeholder="AIzaSy..."
-                value={geminiApiKey}
-                onChange={(e) => {
-                  setGeminiApiKey(e.target.value);
-                  localStorage.setItem('geminiApiKey', e.target.value);
-                }}
-                style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-glass)', background: 'rgba(255,255,255,0.05)', color: 'white', fontFamily: 'var(--font-mono)' }}
-              />
-            </div>
+          <div className="nav-links">
+            <Link to="/about" className="btn-secondary">About</Link>
+            <Link to="/login" className="btn-secondary">Login</Link>
+            <Link to="/login" className="btn-primary">Get Started</Link>
           </div>
-        )}
+        </nav>
 
-        <div className="demo-grid reveal-on-scroll">
-          <div className="demo-panel input-panel">
-            <div className="panel-header">
-              <span className="dot" style={{ background: '#ff5f56' }}></span>
-              <span className="dot" style={{ background: '#ffbd2e' }}></span>
-              <span className="dot" style={{ background: '#27c93f' }}></span>
-              <span className="panel-title">{uploadedFile ? uploadedFile.name : 'Student Answer Sheet.jpg'}</span>
-            </div>
-            <div className="panel-body">
-              <div className="mock-upload-area" style={{ padding: uploadedImageUrl ? '0' : '2rem' }}>
-                {uploadedImageUrl ? (
-                  uploadedFile && !uploadedFile.type.startsWith('image/') ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', minHeight: '200px', width: '100%' }}>
-                      <FileText size={48} color="#a0aec0" style={{ marginBottom: '1rem' }} />
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#a0aec0', wordBreak: 'break-all', textAlign: 'center' }}>{uploadedFile.name}</span>
-                      <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '500' }}>Document Ready for OCR Scan</p>
-                    </div>
-                  ) : (
-                    <div style={{ position: 'relative', display: 'inline-block' }}>
-                      <img
-                        src={uploadedImageUrl}
-                        alt="Uploaded math"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '400px',
-                          borderRadius: '8px',
-                          transform: `rotate(${imageRotation}deg)`,
-                          transition: 'transform 0.3s ease'
-                        }}
-                      />
-                      <button
-                        onClick={() => setImageRotation(prev => prev + 90)}
-                        className="btn-secondary"
-                        style={{
-                          position: 'absolute',
-                          top: '10px',
-                          right: '10px',
-                          padding: '0.4rem 0.8rem',
-                          margin: 0,
-                          fontSize: '0.8rem',
-                          background: 'rgba(10, 10, 15, 0.8)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)'
-                        }}
-                      >
-                        ↻ Rotate
-                      </button>
-                    </div>
-                  )
-                ) : (
-                  <div className="math-equation-mock">
-                    <p>Q: Find the roots of $x^2 - 5x + 6 = 0$</p>
-                    <div className="handwriting-mock">
-                      <p>x = [-b ± √(b² - 4ac)] / 2a</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="demo-controls" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', margin: 0 }}>
-                  <Upload size={18} />
-                  Upload Document
-                  <input type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" style={{ display: 'none' }} onChange={handleFileUpload} disabled={isEvaluating} />
-                </label>
-                {!demoResult ? (
-                  <button
-                    className="btn-primary evaluate-btn"
-                    onClick={runDemoEvaluation}
-                    disabled={isEvaluating}
-                  >
-                    {isEvaluating ? (
-                      <><Loader2 className="animate-spin" size={20} /> Analyzing...</>
-                    ) : (
-                      <><Brain size={20} /> Run AI Evaluation</>
-                    )}
-                  </button>
-                ) : (
-                  <button className="btn-secondary reset-btn" onClick={resetDemo}>
-                    Reset Demo
-                  </button>
-                )}
-              </div>
-            </div>
+        <header className="hero-section section-padding section-border-bottom">
+          <div className="announcement-chip animate-fade-in delay-1">
+            New: Fast & Accurate AI Evaluation
           </div>
-
-          {/* Right Panel: AI Result */}
-          <div className="demo-panel output-panel">
-            <div className="panel-header">
-              <span className="dot" style={{ background: '#ff5f56' }}></span>
-              <span className="dot" style={{ background: '#ffbd2e' }}></span>
-              <span className="dot" style={{ background: '#27c93f' }}></span>
-              <span className="panel-title">AI Grade Report</span>
-            </div>
-            <div className="panel-body">
-              {!demoResult && !isEvaluating && (
-                <div className="empty-state">
-                  <Upload size={40} style={{ opacity: 0.5, marginBottom: '1rem' }} />
-                  <p>Click 'Run AI Evaluation' to see the magic happen.</p>
-                </div>
-              )}
-
-              {isEvaluating && (
-                <div className="loading-state">
-                  <div className="pulse-ring"></div>
-                  {uploadedImageUrl ? (
-                    <>
-                      <p style={{ fontWeight: '600', color: '#fff' }}>{ocrStatus || 'Starting AI Engine...'}</p>
-                      {ocrProgress > 0 && (
-                        <div className="ocr-progress-container" style={{ width: '80%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div className="ocr-progress-bar" style={{ width: `${ocrProgress * 100}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.2s ease' }}></div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p>Extracting handwriting...</p>
-                      <p className="delay-text-1">Parsing mathematical structure...</p>
-                      <p className="delay-text-2">Applying custom rubric...</p>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {extractedText && !isEvaluating && (
-                <div className="extracted-text-box animate-fade-in" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '1rem', marginBottom: '1rem' }}>
-                  <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem', marginTop: 0 }}>
-                    <ScanText size={16} /> API / Processing Status
-                  </h4>
-                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#a0aec0', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
-                    {extractedText}
-                  </pre>
-                </div>
-              )}
-
-              {demoResult && (
-                <div className="result-state animate-fade-in">
-                  <div className="score-banner">
-                    <span className="score-label">Final Score</span>
-                    <span className="score-value">{demoResult.score}</span>
-                  </div>
-
-                  <div className="step-feedback-list">
-                    {demoResult.steps.map((step, idx) => (
-                      <div key={idx} className={`step-item ${step.status}`}>
-                        <div className="step-icon">
-                          {step.status === 'correct' ? <CheckCircle2 size={20} color="#27c93f" /> : <XCircle size={20} color="#ffbd2e" />}
-                        </div>
-                        <div className="step-content">
-                          <h4>{step.name} <span className="step-points">{step.points}</span></h4>
-                          <p>{step.message}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {demoResult.correctAnswer && (
-                    <div className="insight-box" style={{ background: 'rgba(255, 95, 86, 0.1)', border: '1px solid rgba(255, 95, 86, 0.3)', marginTop: '1rem', flexDirection: 'column', alignItems: 'stretch', gap: 0 }}>
-                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                        <Bot size={18} color="#ff5f56" style={{ flexShrink: 0, marginTop: '4px' }} />
-                        <div style={{ width: '100%', overflow: 'hidden' }}>
-                          <p><strong>Correct Answer:</strong> {demoResult.correctAnswer}</p>
-                        </div>
-                      </div>
-                      {demoResult.correctAnswerLatex && (
-                        <details style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '8px', border: '1px solid rgba(255, 95, 86, 0.3)' }}>
-                          <summary style={{ padding: '1rem', cursor: 'pointer', fontWeight: '600', color: '#ff908b', outline: 'none', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                            <Layers size={18} /> View Step-by-Step Math
-                          </summary>
-                          <div style={{ padding: '1.25rem 1rem', borderTop: '1px solid rgba(255, 95, 86, 0.2)', overflowX: 'auto', fontSize: '1em' }}>
-                            <div dangerouslySetInnerHTML={{ __html: katex.renderToString(demoResult.correctAnswerLatex, { displayMode: true, throwOnError: false }) }} />
-                          </div>
-                        </details>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="insight-box" style={{ marginTop: '1rem' }}>
-                    <Bot size={18} />
-                    <p><strong>AI Insight:</strong> {demoResult.insight || 'The student understands the basic concepts but made an error. Partial credit awarded.'}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="features-section section-padding section-border-bottom">
-        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 className="section-title reveal-on-scroll">Everything you need, <br />all in one place</h2>
-        </div>
-
-        <div className="features-grid-3">
-          <div className="feature-card reveal-on-scroll">
-            <div className="feature-icon-wrapper"><Layers size={28} /></div>
-            <h3 className="feature-title">Multi-Stage AI Pipeline</h3>
-            <p className="feature-desc">Leveraging advanced machine learning, ScribeScore processes raw handwritten answers through specialized OCR and semantic analysis stages for unparalleled accuracy.</p>
-            <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
-          </div>
-
-          <div className="feature-card reveal-on-scroll">
-            <div className="feature-icon-wrapper"><ScanText size={28} /></div>
-            <h3 className="feature-title">Handwritten Answer Recognition</h3>
-            <p className="feature-desc">Our proprietary computer vision models are trained specifically on student handwriting, effortlessly digitizing and parsing even the most challenging cursive.</p>
-            <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
-          </div>
-
-          <div className="feature-card reveal-on-scroll">
-            <div className="feature-icon-wrapper"><Bot size={28} /></div>
-            <h3 className="feature-title">Automated Intelligent Grading</h3>
-            <p className="feature-desc">Instantly evaluate exams against your provided answer keys and rubrics, automatically assigning partial credit and identifying logical steps in student responses.</p>
-            <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. How It Works Workflow */}
-      <section className="pipeline-section section-padding section-border-bottom">
-        <div className="pipeline-grid">
-          <div>
-            <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'left' }}>How ScribScore <br />actually works</h2>
-            <p className="section-subtitle">
-              A transparent, 4-step workflow that transforms raw, messy answer sheets into finalized, analytical grade reports.
-            </p>
-            <Link to="/login" className="btn-primary">Try the Workflow</Link>
-          </div>
-
-          <div className="agentic-workflow-wrapper reveal-on-scroll">
-
-            {/* Visual Nodes */}
-            <div className="agentic-nodes-container">
-              {[
-                { title: 'Scan', desc: 'Batch ingest PDFs', icon: <ScanText size={20} /> },
-                { title: 'Vision', desc: 'Handwriting OCR', icon: <Zap size={20} /> },
-                { title: 'Evaluate', desc: 'Semantic grading', icon: <Brain size={20} /> },
-                { title: 'Verify', desc: 'Teacher approval', icon: <ShieldCheck size={20} /> }
-              ].map((step, index) => (
-                <React.Fragment key={index}>
-                  <div className={`agentic-node ${activeWorkflowStep >= index ? 'active' : ''} ${activeWorkflowStep === index ? 'pulsing' : ''}`} style={{ animationDelay: `${index * 0.1}s` }}>
-                    <div className="node-icon">{step.icon}</div>
-                    <div className="node-info">
-                      <h4>{step.title}</h4>
-                      <p>{step.desc}</p>
-                    </div>
-                  </div>
-                  {index < 3 && <div className={`agentic-connector ${activeWorkflowStep > index ? 'active' : ''}`}></div>}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-
-      {/* 7. Standards 2x2 Grid */}
-      <section className="features-section section-padding section-border-bottom">
-        <div style={{ textAlign: 'center', marginBottom: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center', width: '100%' }}>
-            <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Elevating</span> <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>Standards</span>
-          </h2>
-          <p className="section-subtitle" style={{ margin: '0 auto', color: '#ffffff' }}>Built for scale, precision, and compliance.</p>
-        </div>
-
-        <div className="standards-grid">
-          <div className="standard-card">
-            <h3><ScanText size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Handwriting OCR</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>State-of-the-art optical character recognition for messy handwriting.</p>
-          </div>
-          <div className="standard-card">
-            <h3><BarChart3 size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Real-Time Analytics</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>Instantly identify knowledge gaps across the entire classroom.</p>
-          </div>
-          <div className="standard-card">
-            <h3><Layers size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Curated Criteria</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>Standardize evaluations across multiple graders perfectly.</p>
-          </div>
-          <div className="standard-card">
-            <h3><ShieldCheck size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Verification Audit</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>Human-in-the-loop flows to review flagged low-confidence grades.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* 9. FAQs */}
-      <section className="faq-section section-padding section-border-bottom">
-        <div style={{ textAlign: 'center', marginBottom: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center', width: '100%' }}>
-            <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Got questions?</span><br />
-            <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>We have answers.</span>
-          </h2>
-        </div>
-
-        <div className="faq-container">
-          {faqs.map((faq, index) => (
-            <div key={index} className="faq-item">
-              <div
-                className="faq-question"
-                onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
-              >
-                {faq.q}
-                {openFaq === index ? <Minus size={20} /> : <Plus size={20} />}
-              </div>
-              {openFaq === index && (
-                <div className="faq-answer animate-fade-in">
-                  {faq.a}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 10. Bottom CTA */}
-      <section className="bottom-cta section-padding section-border-bottom">
-        <h2 className="bottom-cta-title">Ready to grade with AI?</h2>
-        <p style={{ fontSize: '1.25rem', marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem' }}>
-          Start saving hours on grading and streamline your evaluation process today.
-        </p>
-        <Link to="/login" className="btn-white">
-          Try ScribScore Now <ArrowRight size={20} />
-        </Link>
-
-
-      </section>
-
-      {/* 11. Footer */}
-      <footer className="landing-footer">
-        <div className="footer-grid">
-          <div className="footer-col">
-            <Link to="/" className="footer-logo">
-              <Brain size={24} />
-              ScribScore
+          <h1 className="hero-title animate-fade-in delay-1" style={{ fontSize: 'clamp(4rem, 12vw, 10rem)', letterSpacing: '-0.05em', lineHeight: '0.95', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
+            <span style={{ color: 'var(--text-primary)' }}>SCRIB</span>
+            <span style={{ color: 'var(--text-tertiary)' }}>SCORE.</span>
+          </h1>
+          <p className="hero-subtitle animate-fade-in delay-2" style={{ fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>
+            ScribeScore is an AI-powered intelligent exam grading system that automatically evaluates handwritten student answer sheets using a multi-stage AI pipeline
+          </p>
+          <div className="hero-ctas animate-fade-in delay-3">
+            <Link to="/login" className="btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
+              Try ScribScore Now
             </Link>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: '250px' }}>
-              An open platform to modernize academic assessment and simplify grading.
+            <Link to="/documentation" className="btn-secondary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
+              View Documentation
+            </Link>
+          </div>
+        </header>
+
+        <section className="demo-section section-padding section-border-bottom">
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <h2 className="section-title reveal-on-scroll" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              Try it Live
+              <button className="btn-icon" onClick={() => setShowSettings(!showSettings)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }} title="API Settings">
+                <Settings size={28} />
+              </button>
+            </h2>
+            <p className="section-subtitle" style={{ margin: '0 auto' }}>Experience the speed and accuracy of ScribScore's AI grading in real-time.</p>
+          </div>
+
+          {showSettings && (
+            <div className="demo-settings animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto 2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid var(--border-glass)', textAlign: 'left' }}>
+              <h3 style={{ marginTop: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings size={18} /> Gemini API Configuration</h3>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Enter your Gemini API key to enable real AI OCR. Without this, the demo runs in a simulated fallback mode.</p>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="password"
+                  placeholder="AIzaSy..."
+                  value={geminiApiKey}
+                  onChange={(e) => {
+                    setGeminiApiKey(e.target.value);
+                    localStorage.setItem('geminiApiKey', e.target.value);
+                  }}
+                  style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-glass)', background: 'rgba(255,255,255,0.05)', color: 'white', fontFamily: 'var(--font-mono)' }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="demo-grid reveal-on-scroll">
+            <div className="demo-panel input-panel">
+              <div className="panel-header">
+                <span className="dot" style={{ background: '#ff5f56' }}></span>
+                <span className="dot" style={{ background: '#ffbd2e' }}></span>
+                <span className="dot" style={{ background: '#27c93f' }}></span>
+                <span className="panel-title">{uploadedFile ? uploadedFile.name : 'Student Answer Sheet.jpg'}</span>
+              </div>
+              <div className="panel-body">
+                <div className="mock-upload-area" style={{ padding: uploadedImageUrl ? '0' : '2rem' }}>
+                  {uploadedImageUrl ? (
+                    uploadedFile && !uploadedFile.type.startsWith('image/') ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', minHeight: '200px', width: '100%' }}>
+                        <FileText size={48} color="#a0aec0" style={{ marginBottom: '1rem' }} />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#a0aec0', wordBreak: 'break-all', textAlign: 'center' }}>{uploadedFile.name}</span>
+                        <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '500' }}>Document Ready for OCR Scan</p>
+                      </div>
+                    ) : (
+                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <img
+                          src={uploadedImageUrl}
+                          alt="Uploaded math"
+                          style={{
+                            maxWidth: '100%',
+                            maxHeight: '400px',
+                            borderRadius: '8px',
+                            transform: `rotate(${imageRotation}deg)`,
+                            transition: 'transform 0.3s ease'
+                          }}
+                        />
+                        <button
+                          onClick={() => setImageRotation(prev => prev + 90)}
+                          className="btn-secondary"
+                          style={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '10px',
+                            padding: '0.4rem 0.8rem',
+                            margin: 0,
+                            fontSize: '0.8rem',
+                            background: 'rgba(10, 10, 15, 0.8)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)'
+                          }}
+                        >
+                          ↻ Rotate
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    <div className="math-equation-mock">
+                      <p>Q: Find the roots of $x^2 - 5x + 6 = 0$</p>
+                      <div className="handwriting-mock">
+                        <p>x = [-b ± √(b² - 4ac)] / 2a</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="demo-controls" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', margin: 0 }}>
+                    <Upload size={18} />
+                    Upload Document
+                    <input type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx" style={{ display: 'none' }} onChange={handleFileUpload} disabled={isEvaluating} />
+                  </label>
+                  {!demoResult ? (
+                    <button
+                      className="btn-primary evaluate-btn"
+                      onClick={runDemoEvaluation}
+                      disabled={isEvaluating}
+                    >
+                      {isEvaluating ? (
+                        <><Loader2 className="animate-spin" size={20} /> Analyzing...</>
+                      ) : (
+                        <><Brain size={20} /> Run AI Evaluation</>
+                      )}
+                    </button>
+                  ) : (
+                    <button className="btn-secondary reset-btn" onClick={resetDemo}>
+                      Reset Demo
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Panel: AI Result */}
+            <div className="demo-panel output-panel">
+              <div className="panel-header">
+                <span className="dot" style={{ background: '#ff5f56' }}></span>
+                <span className="dot" style={{ background: '#ffbd2e' }}></span>
+                <span className="dot" style={{ background: '#27c93f' }}></span>
+                <span className="panel-title">AI Grade Report</span>
+              </div>
+              <div className="panel-body">
+                {!demoResult && !isEvaluating && (
+                  <div className="empty-state">
+                    <Upload size={40} style={{ opacity: 0.5, marginBottom: '1rem' }} />
+                    <p>Click 'Run AI Evaluation' to see the magic happen.</p>
+                  </div>
+                )}
+
+                {isEvaluating && (
+                  <div className="loading-state">
+                    <div className="pulse-ring"></div>
+                    {uploadedImageUrl ? (
+                      <>
+                        <p style={{ fontWeight: '600', color: '#fff' }}>{ocrStatus || 'Starting AI Engine...'}</p>
+                        {ocrProgress > 0 && (
+                          <div className="ocr-progress-container" style={{ width: '80%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div className="ocr-progress-bar" style={{ width: `${ocrProgress * 100}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.2s ease' }}></div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p>Extracting handwriting...</p>
+                        <p className="delay-text-1">Parsing mathematical structure...</p>
+                        <p className="delay-text-2">Applying custom rubric...</p>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {extractedText && !isEvaluating && (
+                  <div className="extracted-text-box animate-fade-in" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '1rem', marginBottom: '1rem' }}>
+                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem', marginTop: 0 }}>
+                      <ScanText size={16} /> API / Processing Status
+                    </h4>
+                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#a0aec0', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
+                      {extractedText}
+                    </pre>
+                  </div>
+                )}
+
+                {demoResult && (
+                  <div className="result-state animate-fade-in">
+                    <div className="score-banner">
+                      <span className="score-label">Final Score</span>
+                      <span className="score-value">{demoResult.score}</span>
+                    </div>
+
+                    <div className="step-feedback-list">
+                      {demoResult.steps.map((step, idx) => (
+                        <div key={idx} className={`step-item ${step.status}`}>
+                          <div className="step-icon">
+                            {step.status === 'correct' ? <CheckCircle2 size={20} color="#27c93f" /> : <XCircle size={20} color="#ffbd2e" />}
+                          </div>
+                          <div className="step-content">
+                            <h4>{step.name} <span className="step-points">{step.points}</span></h4>
+                            <p>{step.message}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {demoResult.correctAnswer && (
+                      <div className="insight-box" style={{ background: 'rgba(255, 95, 86, 0.1)', border: '1px solid rgba(255, 95, 86, 0.3)', marginTop: '1rem', flexDirection: 'column', alignItems: 'stretch', gap: 0 }}>
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                          <Bot size={18} color="#ff5f56" style={{ flexShrink: 0, marginTop: '4px' }} />
+                          <div style={{ width: '100%', overflow: 'hidden' }}>
+                            <p><strong>Correct Answer:</strong> {demoResult.correctAnswer}</p>
+                          </div>
+                        </div>
+                        {demoResult.correctAnswerLatex && (
+                          <details style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '8px', border: '1px solid rgba(255, 95, 86, 0.3)' }}>
+                            <summary style={{ padding: '1rem', cursor: 'pointer', fontWeight: '600', color: '#ff908b', outline: 'none', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                              <Layers size={18} /> View Step-by-Step Math
+                            </summary>
+                            <div style={{ padding: '1.25rem 1rem', borderTop: '1px solid rgba(255, 95, 86, 0.2)', overflowX: 'auto', fontSize: '1em' }}>
+                              <div dangerouslySetInnerHTML={{ __html: katex.renderToString(demoResult.correctAnswerLatex, { displayMode: true, throwOnError: false }) }} />
+                            </div>
+                          </details>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="insight-box" style={{ marginTop: '1rem' }}>
+                      <Bot size={18} />
+                      <p><strong>AI Insight:</strong> {demoResult.insight || 'The student understands the basic concepts but made an error. Partial credit awarded.'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="features-section section-padding section-border-bottom">
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <h2 className="section-title reveal-on-scroll">Everything you need, <br />all in one place</h2>
+          </div>
+
+          <div className="features-grid-3" ref={featuresRef}>
+            <div className="feature-card reveal-on-scroll">
+              <div className="feature-icon-wrapper"><Layers size={28} /></div>
+              <h3 className="feature-title">Multi-Stage AI Pipeline</h3>
+              <p className="feature-desc">
+                <SequentialTypewriterText 
+                  text="Leveraging advanced machine learning, ScribeScore processes raw handwritten answers through specialized OCR and semantic analysis stages for unparalleled accuracy." 
+                  isActive={activeFeatureCardIndex >= 1}
+                  onComplete={() => setActiveFeatureCardIndex(2)}
+                  speed={32}
+                />
+              </p>
+              <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
+            </div>
+
+            <div className="feature-card reveal-on-scroll">
+              <div className="feature-icon-wrapper"><ScanText size={28} /></div>
+              <h3 className="feature-title">Handwritten Answer Recognition</h3>
+              <p className="feature-desc">
+                <SequentialTypewriterText 
+                  text="Our proprietary computer vision models are trained specifically on student handwriting, effortlessly digitizing and parsing even the most challenging cursive." 
+                  isActive={activeFeatureCardIndex >= 2}
+                  onComplete={() => setActiveFeatureCardIndex(3)}
+                  speed={32}
+                />
+              </p>
+              <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
+            </div>
+
+            <div className="feature-card reveal-on-scroll">
+              <div className="feature-icon-wrapper"><Bot size={28} /></div>
+              <h3 className="feature-title">Automated Intelligent Grading</h3>
+              <p className="feature-desc">
+                <SequentialTypewriterText 
+                  text="Instantly evaluate exams against your provided answer keys and rubrics, automatically assigning partial credit and identifying logical steps in student responses." 
+                  isActive={activeFeatureCardIndex >= 3}
+                  speed={32}
+                />
+              </p>
+              <Link to="/login" className="feature-link">Learn More <ArrowRight size={16} /></Link>
+            </div>
+          </div>
+        </section>
+
+        {/* 4.5. About ScribScore Section */}
+        <section className="about-summary-section section-padding section-border-bottom">
+          <div style={{ textAlign: 'center', marginBottom: '3.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="announcement-chip reveal-on-scroll" style={{ marginBottom: '1rem' }}>
+              Human-in-the-Loop Evaluation
+            </div>
+            <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center' }}>
+              Making Answer Sheet <br />
+              <span style={{ color: '#ffffff' }}>Evaluation Smarter</span>
+            </h2>
+            <p className="section-subtitle" style={{ maxWidth: '750px', margin: '0 auto', color: 'var(--text-secondary)', fontSize: '1.15rem', lineHeight: '1.7' }}>
+              ScribScore is an AI-assisted evaluation platform engineered to make exam checking faster, consistent, and transparent while keeping educators fully in control.
             </p>
           </div>
-        </div>
-        <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} ScribScore Educational Technologies. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
+
+          <div className="about-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', maxWidth: '1100px', margin: '0 auto' }}>
+            <div className="standard-card reveal-on-scroll">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Zap size={20} style={{ color: '#00F2FE' }} /> Automated Efficiency
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                Reduces repetitive manual checking by digitizing handwritten answers using advanced Multimodal OCR.
+              </p>
+            </div>
+
+            <div className="standard-card reveal-on-scroll">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Brain size={20} style={{ color: '#c0e700ff' }} /> Rubric-Based Scoring
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                Evaluates student responses directly against ground-truth answer keys, explaining rationale & partial credit.
+              </p>
+            </div>
+
+            <div className="standard-card reveal-on-scroll">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <ShieldCheck size={20} style={{ color: '#ff3502ff' }} /> Teacher Control
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                AI assists with initial evaluation while teachers verify, edit scores, or flag low-confidence answers effortlessly.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+            <Link to="/about" className="btn-secondary" style={{ padding: '0.8rem 2rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+              Discover ScribScore <ArrowRight size={18} />
+            </Link>
+          </div>
+        </section>
+
+        {/* 5. How It Works Workflow */}
+        <section className="pipeline-section section-padding section-border-bottom">
+          <div className="pipeline-grid">
+            <div>
+              <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'left' }}>How ScribScore <br />actually works</h2>
+              <p className="section-subtitle">
+                A transparent, 4-step workflow that transforms raw, messy answer sheets into finalized, analytical grade reports.
+              </p>
+              <Link to="/login" className="btn-primary">Try the Workflow</Link>
+            </div>
+
+            <div className="agentic-workflow-wrapper reveal-on-scroll">
+
+              {/* Visual Nodes */}
+              <div className="agentic-nodes-container">
+                {[
+                  { title: 'Scan', desc: 'Batch ingest PDFs', icon: <ScanText size={20} /> },
+                  { title: 'Vision', desc: 'Handwriting OCR', icon: <Zap size={20} /> },
+                  { title: 'Evaluate', desc: 'Semantic grading', icon: <Brain size={20} /> },
+                  { title: 'Verify', desc: 'Teacher approval', icon: <ShieldCheck size={20} /> }
+                ].map((step, index) => (
+                  <React.Fragment key={index}>
+                    <div className={`agentic-node ${activeWorkflowStep >= index ? 'active' : ''} ${activeWorkflowStep === index ? 'pulsing' : ''}`} style={{ animationDelay: `${index * 0.1}s` }}>
+                      <div className="node-icon">{step.icon}</div>
+                      <div className="node-info">
+                        <h4>{step.title}</h4>
+                        <p>{step.desc}</p>
+                      </div>
+                    </div>
+                    {index < 3 && <div className={`agentic-connector ${activeWorkflowStep > index ? 'active' : ''}`}></div>}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+
+        {/* 7. Standards 2x2 Grid */}
+        <section className="features-section section-padding section-border-bottom">
+          <div style={{ textAlign: 'center', marginBottom: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center', width: '100%' }}>
+              <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Elevating</span> <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>Standards</span>
+            </h2>
+            <p className="section-subtitle" style={{ margin: '0 auto', color: '#ffffff' }}>Built for scale, precision, and compliance.</p>
+          </div>
+
+          <div className="standards-grid">
+            <div className="standard-card">
+              <h3><ScanText size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Handwriting OCR</h3>
+              <p style={{ color: 'var(--text-secondary)' }}>State-of-the-art optical character recognition for messy handwriting.</p>
+            </div>
+            <div className="standard-card">
+              <h3><BarChart3 size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Real-Time Analytics</h3>
+              <p style={{ color: 'var(--text-secondary)' }}>Instantly identify knowledge gaps across the entire classroom.</p>
+            </div>
+            <div className="standard-card">
+              <h3><Layers size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Curated Criteria</h3>
+              <p style={{ color: 'var(--text-secondary)' }}>Standardize evaluations across multiple graders perfectly.</p>
+            </div>
+            <div className="standard-card">
+              <h3><ShieldCheck size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} /> Verification Audit</h3>
+              <p style={{ color: 'var(--text-secondary)' }}>Human-in-the-loop flows to review flagged low-confidence grades.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* 9. FAQs */}
+        <section className="faq-section section-padding section-border-bottom">
+          <div style={{ textAlign: 'center', marginBottom: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center', width: '100%' }}>
+              <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Got questions?</span><br />
+              <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>We have answers.</span>
+            </h2>
+          </div>
+
+          <div className="faq-container">
+            {faqs.map((faq, index) => (
+              <div key={index} className="faq-item">
+                <div
+                  className="faq-question"
+                  onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
+                >
+                  {faq.q}
+                  {openFaq === index ? <Minus size={20} /> : <Plus size={20} />}
+                </div>
+                {openFaq === index && (
+                  <div className="faq-answer animate-fade-in">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 10. Bottom CTA */}
+        <section className="bottom-cta section-padding section-border-bottom">
+          <div className="laser-beam top"></div>
+          <div className="laser-beam bottom"></div>
+          <div className="bottom-cta-badge">
+            <Sparkles size={14} style={{ color: 'var(--text-secondary)' }} />
+            <span>Next Generation Evaluation</span>
+          </div>
+          <h2 className="bottom-cta-title">Ready to grade with AI?</h2>
+          <p className="bottom-cta-desc">
+            Start saving hours on grading and streamline your evaluation process today.
+          </p>
+          <Link to="/login" className="btn-cta-mesh">
+            Try ScribScore Now <ArrowRight size={20} />
+          </Link>
+        </section>
+
+        {/* 11. Footer */}
+        <footer className="landing-footer">
+          <div className="footer-grid" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '2rem' }}>
+            <div className="footer-col">
+              <Link to="/" className="footer-logo">
+                <Brain size={24} />
+                ScribScore
+              </Link>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: '300px' }}>
+                An open AI platform to modernize academic assessment and simplify handwritten paper grading.
+              </p>
+            </div>
+
+            <div className="footer-col">
+              <h4>Legal</h4>
+              <ul>
+                <li><Link to="/privacy">Privacy Policy</Link></li>
+                <li><Link to="/terms">Terms of Service</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <p>© {new Date().getFullYear()} ScribScore Educational Technologies. All rights reserved.</p>
+          </div>
+        </footer>
+      </div>
+    </>
   );
 };
 

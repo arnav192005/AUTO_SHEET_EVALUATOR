@@ -11,7 +11,7 @@ const Export = () => {
     setIsExporting(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/exams/${examId}/export`);
+      const response = await fetch(`/api/v1/exams/${examId}/export`);
       if (!response.ok) {
         throw new Error(`Export failed: ${response.statusText}`);
       }
@@ -50,8 +50,23 @@ const Export = () => {
           <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Exam ID to Export:</label>
           <input 
             type="number" 
+            min="1"
+            step="1"
             value={examId} 
-            onChange={(e) => setExamId(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '') {
+                setExamId('');
+              } else {
+                const num = parseInt(val, 10);
+                setExamId(isNaN(num) || num < 1 ? '1' : num.toString());
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === '-' || e.key === 'e') {
+                e.preventDefault();
+              }
+            }}
             style={{ 
               width: '100%', 
               padding: '0.75rem', 

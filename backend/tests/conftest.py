@@ -2,11 +2,11 @@
 tests/conftest.py
 
 Shared pytest fixtures for the entire test suite.
-Additional fixtures will be added in Day 6-7 (DB session, TestClient).
 """
 from __future__ import annotations
 
 import os
+import asyncio
 import warnings
 
 import pytest
@@ -25,6 +25,10 @@ os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./data/test.db")
 @pytest.fixture(scope="session")
 def api_client() -> TestClient:
     """Synchronous TestClient for the FastAPI app (session-scoped)."""
+    from db.session import create_all_tables
     from apps.api.main import app
 
-    return TestClient(app)
+    asyncio.run(create_all_tables())
+
+    with TestClient(app) as client:
+        yield client

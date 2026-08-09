@@ -56,6 +56,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application startup and shutdown hooks."""
     # Ensure data directories exist
     settings.ensure_dirs()
+    from db.session import create_all_tables
+    await create_all_tables()
     logger.info(
         "startup",
         env=settings.app_env,

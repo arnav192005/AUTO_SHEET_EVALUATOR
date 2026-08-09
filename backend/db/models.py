@@ -121,6 +121,7 @@ class Question(Base):
     )
     question_number: Mapped[int] = mapped_column(Integer, nullable=False)
     question_text: Mapped[str] = mapped_column(Text, nullable=False)
+    expected_answer: Mapped[str | None] = mapped_column(Text, nullable=True)
     max_marks: Mapped[float] = mapped_column(Float, nullable=False)
     rubric_hints: Mapped[str | None] = mapped_column(Text, nullable=True)
 
