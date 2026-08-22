@@ -2,8 +2,10 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import StudentDashboard from './pages/StudentDashboard';
+import StudentUpload from './pages/StudentUpload';
 import MyResults from './pages/MyResults';
 import Upload from './pages/Upload';
+import ExamSetup from './pages/ExamSetup';
 import ReviewSession from './pages/ReviewSession';
 import Export from './pages/Export';
 import Account from './pages/Account';
@@ -95,6 +97,8 @@ function App() {
         
         {/* Authenticated Routes wrapped in Layout */}
         <Route path="/dashboard" element={<ProtectedRoute><Layout><RoleBasedDashboard /></Layout></ProtectedRoute>} />
+        <Route path="/create-exam" element={<ProtectedRoute><Layout><ExamSetup /></Layout></ProtectedRoute>} />
+        <Route path="/submit-sheet" element={<ProtectedRoute><Layout><StudentUpload /></Layout></ProtectedRoute>} />
         <Route path="/results" element={<ProtectedRoute><Layout><MyResults /></Layout></ProtectedRoute>} />
         <Route path="/upload" element={<ProtectedRoute><Layout><Upload /></Layout></ProtectedRoute>} />
         <Route path="/review" element={<ProtectedRoute><Layout><ReviewSession /></Layout></ProtectedRoute>} />

@@ -60,4 +60,5 @@ export const AppApi = {
   getExamQuestions: (examId = 1) => apiClient.get(`/exams/${examId}/questions`).catch(() => []),
   addExamQuestion: (examId, data) => apiClient.post(`/exams/${examId}/questions`, data),
   getMyResults: () => apiClient.get('/exams/results').catch(() => []),
+  createExam: (data) => apiClient.post('/exams', data),
 };

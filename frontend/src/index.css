@@ -23,6 +23,17 @@
   --danger: #FF3333;
   --danger-bg: rgba(255, 51, 51, 0.1);
 
+  --title-gradient-start: #FFFFFF;
+  --title-gradient-end: #A1A1AA;
+  --glow-color: #ffffff;
+  --glow-shadow: rgba(255, 255, 255, 0.8);
+  --glow-bg: rgba(255, 255, 255, 0.6);
+  --text-shadow-color: rgba(255, 255, 255, 0.3);
+
+  --cursor-dot: #FAFAFA;
+  --cursor-glow-color: rgba(255, 255, 255, 0.8);
+  --cursor-ring: rgba(255, 255, 255, 0.4);
+
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
   --font-mono: 'Space Mono', ui-monospace, monospace;
@@ -58,6 +69,17 @@
   --warning-bg: rgba(217, 119, 6, 0.1);
   --danger: #DC2626;
   --danger-bg: rgba(220, 38, 38, 0.1);
+  
+  --title-gradient-start: #111827;
+  --title-gradient-end: #4B5563;
+  --glow-color: #111827;
+  --glow-shadow: rgba(17, 24, 39, 0.8);
+  --glow-bg: rgba(17, 24, 39, 0.6);
+  --text-shadow-color: rgba(17, 24, 39, 0.3);
+
+  --cursor-dot: #111827;
+  --cursor-glow-color: rgba(17, 24, 39, 0.8);
+  --cursor-ring: rgba(17, 24, 39, 0.4);
 }
 
 * {

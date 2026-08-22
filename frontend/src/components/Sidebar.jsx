@@ -18,6 +18,7 @@ const Sidebar = () => {
 
   const navItems = role === 'teacher' ? [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Create Exam', path: '/create-exam', icon: FileCheck2 },
     { name: 'Upload Sheets', path: '/upload', icon: UploadCloud },
     { name: 'Review Session', path: '/review', icon: FileCheck2 },
     { name: 'Export Grades', path: '/export', icon: Download },

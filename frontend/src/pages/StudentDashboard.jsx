@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Award, Clock, ArrowRight } from 'lucide-react';
+import { FileText, Award, Clock, ArrowRight, UploadCloud } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import ThemeToggle from '../components/ThemeToggle';
 import './Dashboard.css';
@@ -68,6 +68,10 @@ const StudentDashboard = () => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <ThemeToggle />
+          <button className="btn-secondary" onClick={() => navigate('/submit-sheet')}>
+            <UploadCloud size={18} />
+            Submit Answer Sheet
+          </button>
           <button className="btn-primary" onClick={() => navigate('/results')}>
             <FileText size={18} />
             View All Results

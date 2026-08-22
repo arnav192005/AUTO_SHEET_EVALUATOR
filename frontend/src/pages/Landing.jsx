@@ -530,7 +530,7 @@ const Landing = () => {
                     <div className="pulse-ring"></div>
                     {uploadedImageUrl ? (
                       <>
-                        <p style={{ fontWeight: '600', color: '#fff' }}>{ocrStatus || 'Starting AI Engine...'}</p>
+                        <p style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{ocrStatus || 'Starting AI Engine...'}</p>
                         {ocrProgress > 0 && (
                           <div className="ocr-progress-container" style={{ width: '80%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
                             <div className="ocr-progress-bar" style={{ width: `${ocrProgress * 100}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.2s ease' }}></div>
@@ -667,7 +667,7 @@ const Landing = () => {
             </div>
             <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center' }}>
               Making Answer Sheet <br />
-              <span style={{ color: '#ffffff' }}>Evaluation Smarter</span>
+              <span style={{ color: 'var(--text-primary)' }}>Evaluation Smarter</span>
             </h2>
             <p className="section-subtitle" style={{ maxWidth: '750px', margin: '0 auto', color: 'var(--text-secondary)', fontSize: '1.15rem', lineHeight: '1.7' }}>
               ScribScore is an AI-assisted evaluation platform engineered to make exam checking faster, consistent, and transparent while keeping educators fully in control.
@@ -753,9 +753,9 @@ const Landing = () => {
         <section className="features-section section-padding section-border-bottom">
           <div style={{ textAlign: 'center', marginBottom: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center', width: '100%' }}>
-              <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Elevating</span> <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>Standards</span>
+              <span style={{ color: 'var(--text-primary)', textShadow: '0 0 15px var(--text-shadow-color)' }}>Elevating</span> <span style={{ color: 'var(--text-secondary)', textShadow: '0 0 12px var(--text-shadow-color)' }}>Standards</span>
             </h2>
-            <p className="section-subtitle" style={{ margin: '0 auto', color: '#ffffff' }}>Built for scale, precision, and compliance.</p>
+            <p className="section-subtitle" style={{ margin: '0 auto', color: 'var(--text-primary)' }}>Built for scale, precision, and compliance.</p>
           </div>
 
           <div className="standards-grid">
@@ -782,8 +782,8 @@ const Landing = () => {
         <section className="faq-section section-padding section-border-bottom">
           <div style={{ textAlign: 'center', marginBottom: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h2 className="section-title reveal-on-scroll" style={{ textAlign: 'center', width: '100%' }}>
-              <span style={{ color: '#ffffff', textShadow: '0 0 15px rgba(255, 255, 255, 0.3)' }}>Got questions?</span><br />
-              <span style={{ color: '#8b92a5', textShadow: '0 0 12px rgba(139, 146, 165, 0.3)' }}>We have answers.</span>
+              <span style={{ color: 'var(--text-primary)', textShadow: '0 0 15px var(--text-shadow-color)' }}>Got questions?</span><br />
+              <span style={{ color: 'var(--text-secondary)', textShadow: '0 0 12px var(--text-shadow-color)' }}>We have answers.</span>
             </h2>
           </div>
 

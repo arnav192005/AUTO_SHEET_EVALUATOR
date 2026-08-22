@@ -340,11 +340,11 @@
   left: -3px;
   width: 6px;
   height: 6px;
-  background: #FAFAFA;
+  background: var(--cursor-dot);
   border-radius: 50%;
   pointer-events: none;
   z-index: 10000;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 8px var(--cursor-glow-color);
   will-change: transform;
 }
 
@@ -354,7 +354,7 @@
   left: -16px;
   width: 32px;
   height: 32px;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border: 1.5px solid var(--cursor-ring);
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
@@ -704,8 +704,8 @@
   left: -30%;
   width: 30%;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 40%, #ffffff 50%, rgba(255, 255, 255, 0.6) 60%, transparent 100%);
-  box-shadow: 0 0 12px #ffffff, 0 0 25px rgba(255, 255, 255, 0.8);
+  background: linear-gradient(90deg, transparent 0%, var(--glow-bg) 40%, var(--glow-color) 50%, var(--glow-bg) 60%, transparent 100%);
+  box-shadow: 0 0 12px var(--glow-color), 0 0 25px var(--glow-shadow);
   animation: borderLightTop 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   z-index: 10;
 }
@@ -717,8 +717,8 @@
   right: -30%;
   width: 30%;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 40%, #ffffff 50%, rgba(255, 255, 255, 0.6) 60%, transparent 100%);
-  box-shadow: 0 0 12px #ffffff, 0 0 25px rgba(255, 255, 255, 0.8);
+  background: linear-gradient(90deg, transparent 0%, var(--glow-bg) 40%, var(--glow-color) 50%, var(--glow-bg) 60%, transparent 100%);
+  box-shadow: 0 0 12px var(--glow-color), 0 0 25px var(--glow-shadow);
   animation: borderLightBottom 4s cubic-bezier(0.4, 0, 0.6, 1) infinite 2s;
   z-index: 10;
 }
@@ -764,7 +764,7 @@
   font-weight: 800;
   margin-bottom: 1.25rem;
   letter-spacing: -0.02em;
-  background: linear-gradient(180deg, #FFFFFF 0%, #A1A1AA 100%);
+  background: linear-gradient(180deg, var(--title-gradient-start) 0%, var(--title-gradient-end) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
