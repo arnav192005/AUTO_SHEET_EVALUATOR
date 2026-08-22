@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2, AlertCircle, Sparkles, Sun, Moon } from 'lucide-react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 const SequentialTypewriterText = ({ text, isActive, onComplete, speed = 30 }) => {
@@ -49,6 +49,19 @@ const SequentialTypewriterText = ({ text, isActive, onComplete, speed = 30 }) =>
 const Landing = () => {
   const [openFaq, setOpenFaq] = useState(0);
   const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
+  const [isLightMode, setIsLightMode] = useState(() => {
+    return localStorage.getItem('theme') === 'light';
+  });
+
+  React.useEffect(() => {
+    if (isLightMode) {
+      document.body.classList.add('light-theme');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.body.classList.remove('light-theme');
+      localStorage.setItem('theme', 'dark');
+    }
+  }, [isLightMode]);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [demoResult, setDemoResult] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
@@ -347,6 +360,14 @@ const Landing = () => {
             ScribScore
           </Link>
           <div className="nav-links">
+            <button 
+              className="btn-secondary" 
+              style={{ padding: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}
+              onClick={() => setIsLightMode(!isLightMode)}
+              title={isLightMode ? "Switch to Dark Mode" : "Switch to Light Mode"}
+            >
+              {isLightMode ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
             <Link to="/about" className="btn-secondary">About</Link>
             <Link to="/login" className="btn-secondary">Login</Link>
             <Link to="/login" className="btn-primary">Get Started</Link>
