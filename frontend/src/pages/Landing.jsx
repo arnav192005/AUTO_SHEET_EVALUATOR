@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Brain, FileText, BarChart3, ScanText, ArrowRight, Zap, ShieldCheck, Settings, Upload, CheckCircle2, Bot, BookOpen, Layers, Plus, Minus, XCircle, Loader2, AlertCircle, Sparkles, Sun, Moon } from 'lucide-react';
+import { AppApi } from '../api/client';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
+import './Landing.css';
 const SequentialTypewriterText = ({ text, isActive, onComplete, speed = 30 }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [hasCompleted, setHasCompleted] = useState(false);
@@ -55,18 +57,7 @@ const Landing = () => {
   });
 
   useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/health');
-        if (response.ok) {
-          setIsConnected(true);
-        } else {
-          setIsConnected(false);
-        }
-      } catch (e) {
-        setIsConnected(false);
-      }
-    };
+    const checkConnection = async () => setIsConnected(await AppApi.health());
 
     checkConnection();
     const interval = setInterval(checkConnection, 10000);
@@ -90,13 +81,9 @@ const Landing = () => {
   const [ocrStatus, setOcrStatus] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
 
-  // Obfuscated key to bypass basic static scrapers while still allowing the live demo to work
-  const p1 = "AQ.Ab8RN6Jj8St";
-  const p2 = "ewzdza3wUbsVGIXofzW5eIJyT1_wC7gdnaiRwZQ";
-
-  const [geminiApiKey, setGeminiApiKey] = useState(
-    import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('geminiApiKey') || (p1 + p2)
-  );
+  // The live demo only uses a Gemini key the visitor enters themselves (kept in their own browser).
+  // Never ship a key in the bundle: anything in frontend code is public.
+  const [geminiApiKey, setGeminiApiKey] = useState(() => localStorage.getItem('geminiApiKey') || '');
   const [showSettings, setShowSettings] = useState(false);
   const [imageRotation, setImageRotation] = useState(0);
   const [activeFeatureCardIndex, setActiveFeatureCardIndex] = useState(0);
@@ -167,10 +154,11 @@ const Landing = () => {
           setOcrStatus('Sending image to Gemini 2.5 Flash...');
           setOcrProgress(0.5);
 
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+          const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'x-goog-api-key': geminiApiKey
             },
             body: JSON.stringify({
               contents: [{

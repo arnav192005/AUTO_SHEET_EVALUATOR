@@ -21,9 +21,8 @@ RUN uv sync --all-extras
 # Copy the rest of the application code
 COPY . .
 
-# Run database seed to ensure SQLite DB exists and is populated
-# The SQLite DB will be created inside the container
-RUN uv run python scripts/seed_db.py
+# The database is created on first start (in the mounted ./data volume).
+# Don't seed at build time: data/ is a volume, and seed data is fake demo content.
 
 EXPOSE 8000
 

@@ -196,3 +196,66 @@
   background-color: var(--border-color);
   margin: 0.5rem 0;
 }
+
+/* ── Small screens: the sidebar becomes a compact top bar ─────────────────── */
+@media (max-width: 900px) {
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+  }
+
+  .sidebar-logo {
+    margin-bottom: 0;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo h2 {
+    display: none;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    padding: 0;
+    gap: 0.25rem;
+    scrollbar-width: none;
+  }
+
+  .nav-item {
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+    font-size: 0.85rem;
+  }
+
+  .sidebar-footer {
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  .sidebar-footer .connection-status,
+  .user-profile .user-info {
+    display: none;
+  }
+
+  .profile-container {
+    padding: 0;
+  }
+
+  .profile-dropdown {
+    right: 0;
+    left: auto;
+    bottom: auto;
+    top: calc(100% + 0.5rem);
+    width: 200px;
+  }
+}

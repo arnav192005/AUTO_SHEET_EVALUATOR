@@ -52,3 +52,6 @@ Thumbs.db
 desktop.ini
 .idea/
 .vscode/
+
+# Generated token-signing secret
+backend/data/.auth_secret

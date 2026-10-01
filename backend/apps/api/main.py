@@ -8,12 +8,15 @@ Usage:
 """
 from __future__ import annotations
 
+import math
 import time
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from packages.common.config import get_settings
@@ -40,6 +43,8 @@ from packages.common.enums import (
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import get_db
+from db.models import User
+from apps.api.dependencies import require_teacher
 
 settings = get_settings()
 
@@ -61,6 +66,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     settings.ensure_dirs()
     from db.session import create_all_tables
     await create_all_tables()
+    from apps.api.routers.auth import ensure_bootstrap_teacher
+    await ensure_bootstrap_teacher()
+    from packages.ocr.gemini_evaluator import gemini_key_configured
+    if not gemini_key_configured():
+        logger.warning(
+            "gemini_api_key_missing",
+            hint="set GEMINI_API_KEY; uploaded sheets will fail evaluation until then",
+        )
     logger.info(
         "startup",
         env=settings.app_env,
@@ -80,9 +93,10 @@ app = FastAPI(
         "Human-in-the-loop review."
     ),
     version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    # Interactive API docs are only exposed in development.
+    docs_url="/docs" if settings.is_development else None,
+    redoc_url="/redoc" if settings.is_development else None,
+    openapi_url="/openapi.json" if settings.is_development else None,
     lifespan=lifespan,
     # Fix: Swagger UI sends requests to the first server URL.
     # 0.0.0.0 is a bind address, NOT a valid browser target — use localhost.
@@ -93,17 +107,14 @@ app = FastAPI(
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 
-# In development, allow the Next.js dev server origin.
-# In production, replace with the actual deployed frontend URL.
-_allowed_origins = (
-    [
-        "http://localhost:3000", "http://127.0.0.1:3000",
-        "http://localhost:5173", "http://127.0.0.1:5173",
-        "http://localhost:5174", "http://127.0.0.1:5174",
-    ]
-    if settings.is_development
-    else []  # set via environment in production
-)
+# In development, allow the local dev server origins.
+# In production, list the deployed frontend URL(s) in CORS_ORIGINS.
+_dev_origins = [
+    "http://localhost:3000", "http://127.0.0.1:3000",
+    "http://localhost:5173", "http://127.0.0.1:5173",
+    "http://localhost:5174", "http://127.0.0.1:5174",
+]
+_allowed_origins = (_dev_origins if settings.is_development else []) + settings.cors_origins
 
 app.add_middleware(
     CORSMiddleware,
@@ -123,6 +134,9 @@ async def add_process_time_header(request: Request, call_next):  # type: ignore[
     response = await call_next(request)
     elapsed_ms = (time.perf_counter() - start) * 1000
     response.headers["X-Process-Time-Ms"] = f"{elapsed_ms:.1f}"
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
     logger.debug(
         "request",
         method=request.method,
@@ -134,6 +148,25 @@ async def add_process_time_header(request: Request, call_next):  # type: ignore[
 
 
 # ── Global Exception Handler ──────────────────────────────────────────────────
+
+
+def _json_safe(value):  # type: ignore[no-untyped-def]
+    """Replace NaN/Infinity (not valid JSON) so error responses can always be rendered."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return str(value)
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={"detail": _json_safe(jsonable_encoder(exc.errors()))},
+    )
 
 
 @app.exception_handler(Exception)
@@ -152,6 +185,12 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     "/health",
     response_model=HealthResponse,
     summary="Health check",
+    tags=["System"],
+)
+@app.get(
+    "/api/v1/health",
+    response_model=HealthResponse,
+    summary="Health check (same-origin path for the frontend proxy)",
     tags=["System"],
 )
 async def health(db: AsyncSession = Depends(get_db)) -> HealthResponse:
@@ -174,14 +213,15 @@ async def health(db: AsyncSession = Depends(get_db)) -> HealthResponse:
     summary="List allowed teacher IDs",
     tags=["System"],
 )
-async def list_teachers() -> list[str]:
-    """Returns the allowlist of teacher IDs (used by the frontend teacher selector)."""
+async def list_teachers(_: User = Depends(require_teacher)) -> list[str]:
+    """Returns the allowlist of teacher IDs. Teachers only."""
     return settings.allowed_teacher_ids
 
 
 # ── Routers (imported here as they are implemented) ───────────────────────────
-from apps.api.routers import sheets, exams
+from apps.api.routers import auth, exams, sheets  # noqa: E402
 
+app.include_router(auth.router)
 app.include_router(exams.router)
 app.include_router(sheets.router)
 

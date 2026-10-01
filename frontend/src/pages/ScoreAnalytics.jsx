@@ -77,13 +77,13 @@ const ScoreAnalytics = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
             <Award size={16} /> Highest Score
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--text-primary)' }}>{overall.highestScore ?? 0}</div>
+          <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--text-primary)' }}>{overall.highestScore ?? 0}%</div>
         </div>
         <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #ff9800' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
             <AlertCircle size={16} /> Lowest Score
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--text-primary)' }}>{overall.lowestScore ?? 0}</div>
+          <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--text-primary)' }}>{overall.lowestScore ?? 0}%</div>
         </div>
         <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #2196f3' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
@@ -93,7 +93,7 @@ const ScoreAnalytics = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         {/* Breakdown by Exam */}
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

@@ -37,7 +37,7 @@ _connect_args = (
 
 engine = create_async_engine(
     _settings.database_url,
-    echo=_settings.is_development,   # log SQL in dev, silent in prod
+    echo=_settings.log_level == "DEBUG",   # log SQL only when explicitly debugging
     future=True,
     connect_args=_connect_args,
 )
@@ -49,6 +49,8 @@ if _settings.database_url.startswith("sqlite"):
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.execute("PRAGMA busy_timeout=60000")
         cursor.execute("PRAGMA synchronous=NORMAL")
+        # SQLite ignores FOREIGN KEY / ON DELETE CASCADE unless this is on.
+        cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
 
@@ -103,8 +105,16 @@ async def create_all_tables() -> None:
     from db.base import Base
     import db.models  # noqa: F401  — ensure all models are registered
 
+    def _create(sync_conn) -> None:  # type: ignore[no-untyped-def]
+        Base.metadata.create_all(sync_conn)
+        # create_all only builds indexes together with brand-new tables, so
+        # indexes added to an existing table later would never appear.
+        for table in Base.metadata.sorted_tables:
+            for index in table.indexes:
+                index.create(sync_conn, checkfirst=True)
+
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(_create)
 
 
 async def drop_all_tables() -> None:

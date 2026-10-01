@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { ZoomIn, ZoomOut, Check, X, AlertTriangle, BookOpen, Brain, Image as ImageIcon, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { AppApi } from '../api/client';
+import { AppApi, authFileUrl } from '../api/client';
 import './ReviewSession.css';
 
 const ReviewSession = () => {
-  const navigate = useNavigate();
   const location = useLocation();
 
   const [reviewData, setReviewData] = useState(null);
@@ -19,32 +18,24 @@ const ReviewSession = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
 
-  const fileUrls = useMemo(() => {
-    if (reviewData?.fileUrls && reviewData.fileUrls.length > 0) {
-      return reviewData.fileUrls;
-    }
-    // Only use location.state.fileUrls if specifically matching this sheet
-    if (location.state?.sheetId && (!actualSheetId || location.state.sheetId === actualSheetId)) {
-      if (location.state.fileUrls && location.state.fileUrls.length > 0) {
-        return location.state.fileUrls;
-      }
-    }
-    const singleUrl = location.state?.fileUrl || sessionStorage.getItem('previewFileUrl');
-    return singleUrl ? [singleUrl] : [];
-  }, [location.state, reviewData, actualSheetId]);
+  const fileUrls = useMemo(() => reviewData?.fileUrls || [], [reviewData]);
+  const fileTypes = useMemo(() => reviewData?.fileTypes || [], [reviewData]);
 
-  const fileTypes = useMemo(() => {
-    if (reviewData?.fileTypes && reviewData.fileTypes.length > 0) {
-      return reviewData.fileTypes;
+  const isProcessing = !!reviewData && (
+    reviewData.jobStatus === 'RUNNING' ||
+    reviewData.jobStatus === 'PENDING' ||
+    reviewData.status === 'EVALUATING'
+  );
+
+  const applyFirstEvaluation = (data) => {
+    if (data?.evaluations?.length > 0) {
+      const firstEval = data.evaluations[0];
+      setCurrentQuestionIndex(0);
+      setScore(firstEval.score ?? 0);
+      setMaxScore(firstEval.maxScore || 10);
+      setReviewStatus(firstEval.reviewStatus || 'NEEDS_REVIEW');
     }
-    if (location.state?.sheetId && (!actualSheetId || location.state.sheetId === actualSheetId)) {
-      if (location.state.fileTypes && location.state.fileTypes.length > 0) {
-        return location.state.fileTypes;
-      }
-    }
-    const singleType = location.state?.fileType || sessionStorage.getItem('previewFileType');
-    return singleType ? [singleType] : ['application/pdf'];
-  }, [location.state, reviewData, actualSheetId]);
+  };
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -52,21 +43,12 @@ const ReviewSession = () => {
     const idToFetch = querySheetId || location.state?.sheetId || 'next';
 
     setLoading(true);
+    setStatusMsg(null);
     AppApi.getSheetReview(idToFetch)
       .then((data) => {
-        if (data && (data.evaluations && data.evaluations.length > 0 || data.studentRoll || data.sheetId)) {
-          setReviewData(data);
-
-          if (data.evaluations && data.evaluations.length > 0) {
-            const firstEval = data.evaluations[0];
-            setScore(firstEval.score !== undefined ? firstEval.score : 0);
-            setMaxScore(firstEval.maxScore || 10);
-            setReviewStatus(firstEval.reviewStatus || 'NEEDS_REVIEW');
-          }
-          setActualSheetId(data.sheetId);
-        } else {
-          setReviewData(null);
-        }
+        setReviewData(data);
+        setActualSheetId(data.sheetId);
+        applyFirstEvaluation(data);
       })
       .catch((err) => {
         console.warn("Could not fetch sheet review from backend:", err);
@@ -75,39 +57,21 @@ const ReviewSession = () => {
       .finally(() => setLoading(false));
   }, [location.search, location.state]);
 
-  // Auto-poll when AI evaluation is still running in background
+  // Auto-poll while the AI evaluation is running in the background.
   useEffect(() => {
-    let pollTimer;
-    const isProcessing = reviewData && (
-      reviewData.jobStatus === 'RUNNING' || 
-      reviewData.jobStatus === 'PENDING' ||
-      (reviewData.status === 'UPLOADED' && (!reviewData.evaluations || reviewData.evaluations.length === 0))
-    );
-
-    if (isProcessing) {
-      pollTimer = setTimeout(() => {
-        const querySheetId = new URLSearchParams(location.search).get('sheetId');
-        const idToFetch = querySheetId || actualSheetId || location.state?.sheetId || 'next';
-        AppApi.getSheetReview(idToFetch)
-          .then((data) => {
-            if (data && (data.evaluations?.length > 0 || data.jobStatus !== reviewData.jobStatus)) {
-              setReviewData(data);
-              if (data.evaluations && data.evaluations.length > 0) {
-                const firstEval = data.evaluations[0];
-                setScore(firstEval.score !== undefined ? firstEval.score : 0);
-                setMaxScore(firstEval.maxScore || 10);
-                setReviewStatus(firstEval.reviewStatus || 'NEEDS_REVIEW');
-              }
-            }
-          })
-          .catch(() => {});
-      }, 3000);
-    }
-
-    return () => {
-      if (pollTimer) clearTimeout(pollTimer);
-    };
-  }, [reviewData, location.search, actualSheetId, location.state]);
+    if (!isProcessing || !actualSheetId) return undefined;
+    const pollTimer = setTimeout(() => {
+      AppApi.getSheetReview(actualSheetId)
+        .then((data) => {
+          const hadResults = reviewData?.evaluations?.length > 0;
+          setReviewData(data);  // always update so the next poll is scheduled
+          if (!hadResults) applyFirstEvaluation(data);
+        })
+        .catch(() => {});
+    }, 3000);
+    return () => clearTimeout(pollTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviewData, isProcessing, actualSheetId]);
 
   // Derived state for the currently selected question
   const currentEval = useMemo(() => {
@@ -122,14 +86,20 @@ const ReviewSession = () => {
   const missingConcepts = currentEval ? currentEval.missingConcepts : [];
 
 
-  const getFullFileUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    return import.meta.env.DEV ? `http://localhost:8000${url}` : url;
+
+  const updateCurrentEvaluation = (changes) => {
+    setReviewData((prev) => prev && {
+      ...prev,
+      evaluations: prev.evaluations.map((ev, i) => (i === currentQuestionIndex ? { ...ev, ...changes } : ev)),
+    });
   };
 
   const handleApprove = async () => {
     setStatusMsg(null);
+    if (!actualSheetId || !currentEval) {
+      setStatusMsg({ type: 'error', text: 'There is no AI evaluation to approve for this sheet yet.' });
+      return;
+    }
     const numScore = parseFloat(score);
     if (isNaN(numScore) || numScore < 0 || numScore > maxScore) {
       setStatusMsg({ type: 'error', text: `Please enter a valid score between 0 and ${maxScore}.` });
@@ -137,11 +107,10 @@ const ReviewSession = () => {
     }
 
     try {
-      if (actualSheetId && currentEval) {
-        await AppApi.approveScore(actualSheetId, numScore, "teacher1", currentEval.questionNumber);
-      }
-      setReviewStatus('APPROVED');
-      setStatusMsg({ type: 'success', text: `Score of ${numScore}/${maxScore} for Q${currentEval?.questionNumber || 1} successfully approved!` });
+      await AppApi.approveScore(actualSheetId, numScore, currentEval.questionNumber);
+      setReviewStatus('REVIEWED');
+      updateCurrentEvaluation({ score: numScore, reviewStatus: 'REVIEWED' });
+      setStatusMsg({ type: 'success', text: `Score of ${numScore}/${maxScore} for Q${currentEval.questionNumber} saved.` });
     } catch (err) {
       console.error("Approve score error:", err);
       setStatusMsg({ type: 'error', text: `Failed to approve score: ${err.message}` });
@@ -150,12 +119,15 @@ const ReviewSession = () => {
 
   const handleFlag = async () => {
     setStatusMsg(null);
+    if (!actualSheetId || !currentEval) {
+      setStatusMsg({ type: 'error', text: 'There is no AI evaluation to flag for this sheet yet.' });
+      return;
+    }
     try {
-      if (actualSheetId && currentEval) {
-        await AppApi.flagIssue(actualSheetId, "Flagged for manual review by teacher", currentEval.questionNumber);
-      }
+      await AppApi.flagIssue(actualSheetId, "Flagged for manual review by teacher", currentEval.questionNumber);
       setReviewStatus('FLAGGED');
-      setStatusMsg({ type: 'warning', text: `Question ${currentEval?.questionNumber || 1} flagged successfully!` });
+      updateCurrentEvaluation({ reviewStatus: 'FLAGGED' });
+      setStatusMsg({ type: 'warning', text: `Question ${currentEval.questionNumber} flagged.` });
     } catch (err) {
       console.error("Flag issue error:", err);
       setStatusMsg({ type: 'error', text: `Failed to flag issue: ${err.message}` });
@@ -174,26 +146,6 @@ const ReviewSession = () => {
 
   return (
     <div className="review-container animate-fade-in">
-      {/* Fallback Mode Warning Banner */}
-      {!loading && reviewData && currentEval?.aiConfidence === 78 && (
-        <div style={{
-          backgroundColor: 'rgba(255, 165, 0, 0.15)',
-          border: '1px solid var(--warning-color)',
-          color: 'var(--warning-color)',
-          padding: '0.75rem 1rem',
-          borderRadius: '8px',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          fontSize: '0.9rem',
-          fontWeight: 500
-        }}>
-          <AlertTriangle size={18} />
-          <span><strong>Local Extraction Mode:</strong> No active Gemini API key detected. This result was generated using local fallback OCR. Manual verification is strongly recommended.</span>
-        </div>
-      )}
-
       <header className="review-header">
         <div className="review-title">
           <button className="badge badge-neutral">
@@ -232,10 +184,10 @@ const ReviewSession = () => {
           {getStatusBadge()}
         </div>
         <div className="review-actions">
-          <button className="btn-secondary text-danger" onClick={handleFlag}>
+          <button className="btn-secondary text-danger" onClick={handleFlag} disabled={!currentEval}>
             <X size={18} /> Flag Issue
           </button>
-          <button className="btn-primary" onClick={handleApprove}>
+          <button className="btn-primary" onClick={handleApprove} disabled={!currentEval}>
             <Check size={18} /> Approve Score
           </button>
         </div>
@@ -257,7 +209,7 @@ const ReviewSession = () => {
       )}
 
       {/* Evaluation in progress banner */}
-      {(reviewData?.jobStatus === 'RUNNING' || reviewData?.jobStatus === 'PENDING' || (reviewData && (!reviewData.evaluations || reviewData.evaluations.length === 0) && reviewData.status === 'UPLOADED')) && (
+      {isProcessing && (
         <div className="glass-panel animate-fade-in" style={{
           backgroundColor: 'rgba(99, 102, 241, 0.12)',
           border: '1px solid var(--accent-primary)',
@@ -294,9 +246,9 @@ const ReviewSession = () => {
         }}>
           <AlertCircle className="text-danger" size={24} />
           <div>
-            <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--error-color)' }}>AI Evaluation Incomplete</div>
+            <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--error-color)' }}>AI Evaluation Failed</div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              {reviewData.jobError ? `Details: ${reviewData.jobError}. ` : ''}You can preview the scanned document on the left and assign a score manually.
+              {reviewData.jobError ? `${reviewData.jobError} ` : ''}No marks were awarded. You can still review the scanned document on the left.
             </div>
           </div>
         </div>
@@ -319,7 +271,7 @@ const ReviewSession = () => {
           <div className="image-viewer" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
               {fileUrls && fileUrls.length > 0 ? (
                 fileUrls.map((url, idx) => {
-                  const fullUrl = getFullFileUrl(url);
+                  const fullUrl = authFileUrl(url);
                   return (
                   <div key={idx} className="document-preview-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     {fileTypes[idx] === 'application/pdf' ? (
@@ -365,16 +317,9 @@ const ReviewSession = () => {
                   </div>
                 )})
               ) : (
-              <div className="mock-document">
-                <div className="mock-handwriting">
-                  <p>Q1. Quadratic Factorization</p>
-                  <p className="cursive">2x² - x - 6 = 0</p>
-                  <p className="cursive">2x² - 4x + 3x - 6 = 0</p>
-                  <p className="cursive">2x(x - 2) + 3(x - 2) = 0</p>
-                  <p className="cursive">(2x + 3)(x - 2) = 0</p>
-                  <p className="cursive">x = -3/2, x = 2</p>
-                </div>
-                <div className="bounding-box pulse-box"></div>
+              <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <ImageIcon size={48} style={{ opacity: 0.5, marginBottom: '1rem' }} />
+                <p>{loading ? 'Loading document...' : 'No document to show.'}</p>
               </div>
             )}
           </div>

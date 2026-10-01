@@ -18,11 +18,14 @@ const Export = () => {
   const handleExport = async () => {
     setIsExporting(true);
     setError(null);
+    if (!examId) {
+      setError("Please enter an exam ID.");
+      setIsExporting(false);
+      return;
+    }
     try {
-      // The backend returns a StreamingResponse (CSV),
-      // so we use a direct fetch and handle it as a blob instead of using the apiClient which expects JSON.
-
-      const blob = await fetch(`/api/v1/exams/${examId}/export`).then(r => r.blob());
+      // The backend returns CSV; exportExamResults checks the status and throws on errors.
+      const blob = await AppApi.exportExamResults(examId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -33,7 +36,7 @@ const Export = () => {
       document.body.removeChild(a);
     } catch (err) {
       console.error("Export error:", err);
-      setError("Failed to export grades. Ensure the backend is running and the exam ID is correct.");
+      setError(err.message || "Failed to export grades.");
     } finally {
       setIsExporting(false);
     }
@@ -66,7 +69,7 @@ const Export = () => {
     
     try {
       const response = await AppApi.syncToLms(examId, selectedProvider, courseId);
-      setSyncResult(response.message);
+      setSyncResult(response);
     } catch (err) {
       console.error("Sync error:", err);
       setError(err.message || "Failed to sync with LMS.");
@@ -201,8 +204,12 @@ const Export = () => {
 
             {syncResult ? (
               <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                <CheckCircle size={48} className="text-success" style={{ margin: '0 auto 1rem auto' }} />
-                <p style={{ fontSize: '1.1rem', color: 'var(--success-color)' }}>{syncResult}</p>
+                {syncResult.simulated ? (
+                  <AlertCircle size={48} className="text-warning" style={{ margin: '0 auto 1rem auto' }} />
+                ) : (
+                  <CheckCircle size={48} className="text-success" style={{ margin: '0 auto 1rem auto' }} />
+                )}
+                <p style={{ fontSize: '1.1rem', color: syncResult.simulated ? 'var(--warning-color)' : 'var(--success-color)' }}>{syncResult.message}</p>
                 <button className="btn-secondary" onClick={closeLmsModal} style={{ marginTop: '2rem', width: '100%' }}>Close</button>
               </div>
             ) : (

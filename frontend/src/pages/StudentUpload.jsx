@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, File, X, AlertCircle, Loader2 } from 'lucide-react';
-import { AppApi } from '../api/client';
+import { AppApi, getAuth } from '../api/client';
 import './Upload.css'; // Reusing upload styles
 
 const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'];
@@ -9,8 +9,19 @@ const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'];
 const StudentUpload = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState(null);
-  const [examId, setExamId] = useState('1');
-  const [studentRoll, setStudentRoll] = useState('2024CS001');
+  const [examId, setExamId] = useState('');
+  const [exams, setExams] = useState([]);
+  // Submissions are always filed under the signed-in student's roll number.
+  const studentRoll = getAuth()?.rollNumber || '';
+
+  useEffect(() => {
+    AppApi.getExams().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setExams(data);
+        setExamId(String(data[0].id));
+      }
+    });
+  }, []);
   const [uploading, setUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -62,8 +73,8 @@ const StudentUpload = () => {
       setErrorMessage("Please select your answer sheet file.");
       return;
     }
-    if (!studentRoll.trim()) {
-      setErrorMessage("Please enter your Student Roll Number.");
+    if (!examId) {
+      setErrorMessage("Please choose the exam you are submitting for.");
       return;
     }
 
@@ -72,7 +83,6 @@ const StudentUpload = () => {
 
     const formData = new FormData();
     formData.append('exam_id', examId);
-    formData.append('student_roll', studentRoll);
     formData.append('files', file);
 
     try {
@@ -109,21 +119,10 @@ const StudentUpload = () => {
         <h3 style={{ fontSize: '1.1rem', margin: '0 0 1rem 0' }}>Submission Details</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Exam ID:</label>
-            <input 
-              type="number" 
-              min="1"
-              step="1"
-              value={examId} 
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val === '') {
-                  setExamId('');
-                } else {
-                  const num = parseInt(val, 10);
-                  setExamId(isNaN(num) || num < 1 ? '1' : num.toString());
-                }
-              }}
+            <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Exam:</label>
+            <select
+              value={examId}
+              onChange={(e) => setExamId(e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.6rem 0.8rem',
@@ -132,16 +131,22 @@ const StudentUpload = () => {
                 background: 'var(--bg-primary)',
                 color: 'var(--text-primary)'
               }}
-            />
+            >
+              {exams.length === 0 && <option value="">No exams available</option>}
+              {exams.map((ex) => (
+                <option key={ex.id} value={String(ex.id)}>{ex.title}{ex.courseCode ? ` (${ex.courseCode})` : ''}</option>
+              ))}
+            </select>
           </div>
 
           <div>
             <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Your Roll Number:</label>
             <input 
               type="text" 
-              value={studentRoll} 
-              onChange={(e) => setStudentRoll(e.target.value)}
-              placeholder="e.g. 2024CS001"
+              value={studentRoll}
+              readOnly
+              aria-readonly="true"
+              title="Your roll number from your account"
               style={{
                 width: '100%',
                 padding: '0.6rem 0.8rem',

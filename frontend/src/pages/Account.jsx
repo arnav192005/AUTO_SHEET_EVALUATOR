@@ -1,32 +1,22 @@
 import React, { useState, useRef } from 'react';
 import { User, Mail, Briefcase, Activity, Settings, Bell, Lock, Save, Edit2, X } from 'lucide-react';
+import { getAuth } from '../api/client';
 import './Account.css';
 
 const Account = () => {
   const [isEditing, setIsEditing] = useState(false);
   const profileBackupRef = useRef(null);
-  const authData = localStorage.getItem('auth');
-  let userRole = 'teacher';
-  let userName = '';
-  let userEmail = '';
-  if (authData) {
-    try {
-      const parsed = JSON.parse(authData);
-      userRole = parsed.role || 'teacher';
-      userName = parsed.name || (userRole === 'teacher' ? 'Arnav Panwala' : 'Student User');
-      userEmail = parsed.email || (userRole === 'teacher' ? 'arnav.panwala@autoeval.edu' : 'student@autoeval.edu');
-    } catch (e) {}
-  } else {
-    userName = 'Arnav Panwala';
-    userEmail = 'arnav.panwala@autoeval.edu';
-  }
+  const auth = getAuth();
+  const userRole = auth?.role || 'student';
+  const userName = auth?.name || (userRole === 'teacher' ? 'Teacher' : 'Student');
+  const userEmail = auth?.email || '';
 
   const [profile, setProfile] = useState({
     name: userName,
     role: userRole === 'teacher' ? 'Administrator' : 'Student',
     department: userRole === 'teacher' ? 'Department of Computer Science' : 'Computer Science (B.Tech)',
     email: userEmail,
-    id: userRole === 'teacher' ? 'EMP-88204' : 'STU-10293'
+    id: auth?.rollNumber || (userRole === 'teacher' ? 'Teacher account' : '—')
   });
 
   const handleProfileChange = (e) => {
@@ -172,7 +162,7 @@ const Account = () => {
               <input type="password" placeholder="Enter new password" className="brutalist-input" />
             </div>
             
-            <button className="btn-secondary text-danger" onClick={() => alert('Password update requested.')}>
+            <button className="btn-secondary text-danger" onClick={() => alert('Password changes are not available yet. Please contact your administrator.')}>
               Update Password
             </button>
           </div>

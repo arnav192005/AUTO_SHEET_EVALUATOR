@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { AppApi, getAuth, setAuth } from '../api/client';
 import './Login.css';
 
 const Login = () => {
@@ -9,85 +10,60 @@ const Login = () => {
   const [role, setRole] = useState('teacher'); // 'teacher' or 'student'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regRoll, setRegRoll] = useState('');
+  const [regPassword, setRegPassword] = useState('');
 
   useEffect(() => {
     // If already logged in, go straight to dashboard
-    const authData = localStorage.getItem('auth');
-    if (authData) {
-      try {
-        const { expires } = JSON.parse(authData);
-        if (Date.now() < expires) {
-          navigate('/dashboard', { replace: true });
-        }
-      } catch (e) {}
-    }
+    if (getAuth()) navigate('/dashboard', { replace: true });
   }, [navigate]);
 
-  const generateNameFromEmail = (emailStr) => {
-    if (!emailStr) return role === 'teacher' ? 'Arnav Panwala' : 'Student User';
-    const prefix = emailStr.split('@')[0];
-    return prefix.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+  const finishLogin = (auth) => {
+    setAuth(auth);
+    navigate('/dashboard');
   };
 
-  const setAuthData = (name, emailStr) => {
-    const finalEmail = emailStr || email || (role === 'teacher' ? 'arnav.panwala@autoeval.edu' : 'student@autoeval.edu');
-    const finalName = name || generateNameFromEmail(finalEmail);
-    
-    const expires = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
-    localStorage.setItem('auth', JSON.stringify({ 
-      token: 'demo-token', 
-      expires, 
-      role,
-      name: finalName,
-      email: finalEmail
-    }));
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      finishLogin(await AppApi.login(email.trim(), password, role));
+    } catch (err) {
+      setError(err.message || 'Sign in failed.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleLogin = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (role === 'teacher') {
-      if (email !== 'teacher@scribscore.com' || password !== 'teacher123') {
-        setError('Invalid Teacher credentials.');
-        return;
-      }
+    if (role !== 'student') {
+      setError('Teacher accounts are created by your administrator. Please register as a student.');
+      return;
     }
+    const name = regName.trim();
+    const regEmailTrim = regEmail.trim();
+    const roll = regRoll.trim();
+    if (!name) return setError('Please enter your name.');
+    if (!roll) return setError('Please enter your roll number.');
+    if (!regEmailTrim.includes('@')) return setError('Please enter a valid email address.');
+    if (regPassword.length < 6) return setError('Password must be at least 6 characters.');
 
     setLoading(true);
-    setTimeout(() => {
-      setAuthData(null, email);
-      navigate('/dashboard');
-    }, 600);
-  };
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-    setError('');
-    
-    const formEmail = e.target.querySelector('input[type="email"]')?.value;
-    const formPassword = e.target.querySelector('input[type="password"]')?.value;
-    const formName = e.target.querySelector('input[type="text"]')?.value;
-    
-    if (!formName || !formName.trim()) {
-      setError('Please enter your name.');
-      return;
+    try {
+      finishLogin(await AppApi.register({ name, email: regEmailTrim, password: regPassword, roll_number: roll }));
+    } catch (err) {
+      setError(err.message || 'Registration failed.');
+    } finally {
+      setLoading(false);
     }
-    if (!formEmail || !formEmail.includes('@')) {
-      setError('Please enter a valid email address.');
-      return;
-    }
-    if (!formPassword || formPassword.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
-    
-    setLoading(true);
-    setTimeout(() => {
-      setAuthData(formName.trim(), formEmail.trim());
-      navigate('/dashboard');
-    }, 600);
   };
 
   return (
@@ -134,14 +110,25 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <input 
-              placeholder="Password" 
-              className="flip-input" 
-              type="password" 
-              required 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input 
+                placeholder="Password" 
+                className="flip-input" 
+                type={showPassword ? "text" : "password"} 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ paddingRight: '2.5rem' }}
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             
             {error && <p style={{ color: '#ff3333', fontSize: '0.85rem', margin: '0 0 10px 0', textAlign: 'center' }}>{error}</p>}
             
@@ -181,10 +168,36 @@ const Login = () => {
               </button>
             </div>
 
-            <input placeholder="Firstname" className="flip-input" type="text" required />
-            <input placeholder="Email" className="flip-input" type="email" required />
-            <input placeholder="Password" className="flip-input" type="password" required />
-            <button type="submit" className="flip-btn" disabled={loading}>
+            {role === 'teacher' && (
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: '0 0 0.5rem', textAlign: 'center' }}>
+                Teacher accounts are created by your administrator.
+              </p>
+            )}
+            <input placeholder="Full name" aria-label="Full name" className="flip-input" type="text" required value={regName} onChange={(e) => setRegName(e.target.value)} />
+            <input placeholder="Roll number" aria-label="Roll number" className="flip-input" type="text" required value={regRoll} onChange={(e) => setRegRoll(e.target.value)} />
+            <input placeholder="Email" aria-label="Email" className="flip-input" type="email" required value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input 
+                placeholder="Password" 
+                className="flip-input" 
+                type={showPassword ? "text" : "password"} 
+                required
+                aria-label="Password"
+                value={regPassword}
+                onChange={(e) => setRegPassword(e.target.value)}
+                style={{ paddingRight: '2.5rem' }} 
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {error && <p style={{ color: '#ff3333', fontSize: '0.85rem', margin: '0 0 10px 0', textAlign: 'center' }}>{error}</p>}
+            <button type="submit" className="flip-btn" disabled={loading || role !== 'student'}>
               {loading ? 'Registering...' : 'Register'}
             </button>
             <span className="switch">Already have an account? 

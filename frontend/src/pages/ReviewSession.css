@@ -297,11 +297,13 @@
   line-height: 1.2;
   transition: all var(--transition-fast);
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .score-input::-webkit-outer-spin-button,
 .score-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 

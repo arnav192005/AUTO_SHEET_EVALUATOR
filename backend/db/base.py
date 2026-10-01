@@ -6,10 +6,9 @@ and in alembic/env.py so Alembic can discover all table metadata.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
-from sqlalchemy import func
-from sqlalchemy.orm import DeclarativeBase, MappedColumn, mapped_column
+from sqlalchemy.orm import DeclarativeBase
 
 
 class Base(DeclarativeBase):
@@ -28,5 +27,8 @@ class Base(DeclarativeBase):
 # Convenience re-export so other modules can do:
 #   from db.base import Base, utcnow
 def utcnow() -> datetime:
-    """Return the current UTC datetime (usable as a column default)."""
-    return datetime.utcnow()
+    """Return the current UTC datetime as a naive value (usable as a column default).
+
+    Stored naive to stay consistent with rows written before this change.
+    """
+    return datetime.now(UTC).replace(tzinfo=None)

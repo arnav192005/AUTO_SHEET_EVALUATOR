@@ -11,7 +11,7 @@ const Upload = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState([]);
   const [examId, setExamId] = useState('1');
-  const [studentRoll, setStudentRoll] = useState('2024CS001');
+  const [studentRoll, setStudentRoll] = useState('');
   const [isMultiPage, setIsMultiPage] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -21,7 +21,6 @@ const Upload = () => {
 
   const navigate = useNavigate();
   const progressIntervalRef = useRef(null);
-  const blobUrlsRef = useRef([]);
 
   // Fetch available exams on load
   useEffect(() => {
@@ -35,11 +34,10 @@ const Upload = () => {
       .catch((err) => console.warn("Failed to load exams list:", err));
   }, []);
 
-  // Cleanup interval and blob URLs on unmount
+  // Cleanup interval on unmount
   useEffect(() => {
     return () => {
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
     };
   }, []);
 
@@ -99,15 +97,40 @@ const Upload = () => {
     }
   };
 
+  // Builds a tiny but valid one-page PDF containing the given lines of text.
+  const makeSamplePdf = (lines) => {
+    // PDF string literals need \, ( and ) escaped with a backslash.
+    const esc = (t) => t.replace(/[\\()]/g, (c) => `\\${c}`);
+    const content = 'BT /F1 14 Tf 72 720 Td 18 TL ' + lines.map((l) => `(${esc(l)}) '`).join(' ') + ' ET';
+    const objects = [
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
+      `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    ];
+    let pdf = '%PDF-1.4\n';
+    const offsets = objects.map((obj, i) => {
+      const offset = pdf.length;
+      pdf += `${i + 1} 0 obj\n${obj}\nendobj\n`;
+      return offset;
+    });
+    const xref = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    pdf += offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('');
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+    return pdf;
+  };
+
   const load50SampleBatch = () => {
     const sampleBatch = [];
     for (let i = 1; i <= 50; i++) {
-      const dummyContent = `Sample Exam Sheet #${i}\nStudent Roll: 2024CS${String(i).padStart(3, '0')}`;
-      const blob = new Blob([dummyContent], { type: 'text/plain' });
-      const file = new File([blob], `answer_sheet_student_${String(i).padStart(2, '0')}.pdf`, { type: 'application/pdf' });
-      sampleBatch.push(file);
+      const pdf = makeSamplePdf([`Sample Exam Sheet #${i}`, 'Answer 1: (sample content for testing the pipeline)']);
+      sampleBatch.push(new File([pdf], `answer_sheet_student_${String(i).padStart(2, '0')}.pdf`, { type: 'application/pdf' }));
     }
     setFiles(sampleBatch);
+    if (!studentRoll.trim()) setStudentRoll('2024CS');
+    setIsMultiPage(false);
     setErrorMessage(null);
   };
 
@@ -123,6 +146,14 @@ const Upload = () => {
   const handleUpload = async () => {
     if (files.length === 0) {
       setErrorMessage("Please select between 1 to 50 answer sheet files to evaluate.");
+      return;
+    }
+    if (!studentRoll.trim()) {
+      setErrorMessage("Please enter the student roll number (or a roll prefix for a batch).");
+      return;
+    }
+    if (!examId) {
+      setErrorMessage("Please choose the exam these sheets belong to.");
       return;
     }
 
@@ -150,7 +181,7 @@ const Upload = () => {
 
     const formData = new FormData();
     formData.append('exam_id', examId);
-    formData.append('student_roll', studentRoll);
+    formData.append('student_roll', studentRoll.trim());
     formData.append('is_multi_page', isMultiPage);
     files.forEach(file => formData.append('files', file));
 
@@ -163,45 +194,15 @@ const Upload = () => {
       }
       setUploadProgress(100);
 
-      // Revoke previously created blob URLs before creating new ones
-      blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
-      const uploadedFileUrls = files.map(f => URL.createObjectURL(f));
-      blobUrlsRef.current = uploadedFileUrls;
-      const uploadedFileTypes = files.map(f => f.type);
-
-      // When uploading a batch of individual student sheets, Sheet 1 only consists of the first file!
-      const currentSheetUrls = isMultiPage ? uploadedFileUrls : [uploadedFileUrls[0]];
-      const currentSheetTypes = isMultiPage ? uploadedFileTypes : [uploadedFileTypes[0]];
-
-      if (currentSheetUrls.length > 0) {
-        sessionStorage.setItem('previewFileUrls', JSON.stringify(currentSheetUrls));
-        sessionStorage.setItem('previewFileTypes', JSON.stringify(currentSheetTypes));
-        sessionStorage.setItem('previewFileUrl', currentSheetUrls[0]);
-        sessionStorage.setItem('previewFileType', currentSheetTypes[0]);
-      }
-
       if (!response || !response.sheet_ids || response.sheet_ids.length === 0) {
         throw new Error(response?.detail || "Upload succeeded but no sheet records were returned by the server.");
       }
 
       const sheetId = response.sheet_ids[0];
 
-      if (response && response.job_ids) {
-        sessionStorage.setItem('evaluationData', JSON.stringify(response));
-      }
-
       setUploading(false);
       setFiles([]);
-      navigate(`/review?sheetId=${sheetId}`, { 
-        state: { 
-          sheetId, 
-          fileUrls: currentSheetUrls,
-          fileTypes: currentSheetTypes,
-          fileUrl: currentSheetUrls[0] || null, 
-          fileType: currentSheetTypes[0] || null,
-          evaluationData: response
-        } 
-      });
+      navigate(`/review?sheetId=${sheetId}`, { state: { sheetId } });
     } catch (error) {
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
@@ -294,12 +295,12 @@ const Upload = () => {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Student Roll Number Prefix:</label>
+            <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{files.length > 1 && !isMultiPage ? 'Student Roll Number Prefix:' : 'Student Roll Number:'}</label>
             <input 
               type="text" 
               value={studentRoll} 
               onChange={(e) => setStudentRoll(e.target.value)}
-              placeholder="e.g. 2024CS001"
+              placeholder={files.length > 1 && !isMultiPage ? 'e.g. 2024CS → 2024CS001, 2024CS002…' : 'e.g. 2024CS001'}
               style={{
                 width: '100%',
                 padding: '0.6rem 0.8rem',

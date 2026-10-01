@@ -68,6 +68,23 @@
   }
 }
 
+@media (max-width: 480px) {
+  .nav-links {
+    gap: 0.5rem;
+  }
+
+  /* hide the server-status pill so the nav fits on phones */
+  .nav-links > div {
+    display: none;
+  }
+
+  .nav-links .btn-primary {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+}
+
 /* Hero */
 .hero-section {
   display: flex;

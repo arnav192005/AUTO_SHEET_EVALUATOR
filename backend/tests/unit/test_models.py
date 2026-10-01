@@ -11,7 +11,7 @@ from __future__ import annotations
 
 
 def test_orm_imports() -> None:
-    """All 12 ORM model classes must import without error."""
+    """All 13 ORM model classes must import without error."""
     from db.models import (  # noqa: F401
         AnswerKey,
         AnswerKeyChunk,
@@ -25,22 +25,23 @@ def test_orm_imports() -> None:
         SheetPage,
         Student,
         TeacherOverride,
+        User,
     )
 
     # Verify they are all distinct classes (not accidentally the same object)
     classes = [
         AnswerKey, AnswerKeyChunk, AnswerSheet, ConfidenceFlag,
         EvaluationResult, Exam, ExtractedAnswer, ProcessingJob,
-        Question, SheetPage, Student, TeacherOverride,
+        Question, SheetPage, Student, TeacherOverride, User,
     ]
-    assert len(set(classes)) == 12, "Expected 12 distinct ORM model classes"
+    assert len(set(classes)) == 13, "Expected 13 distinct ORM model classes"
 
 
-# ── Test 2: Metadata has exactly 12 tables ────────────────────────────────────
+# ── Test 2: Metadata has exactly 13 tables ────────────────────────────────────
 
 
 def test_table_count() -> None:
-    """Base.metadata must contain exactly 12 registered tables."""
+    """Base.metadata must contain exactly 13 registered tables."""
     from db.base import Base
     import db.models  # noqa: F401 — triggers model registration
 
@@ -58,6 +59,7 @@ def test_table_count() -> None:
         "evaluation_results",
         "confidence_flags",
         "teacher_overrides",
+        "users",
     }
     assert tables == expected, (
         f"Table mismatch.\nExpected: {sorted(expected)}\nGot:      {sorted(tables)}"

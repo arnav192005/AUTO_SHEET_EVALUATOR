@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { FileText, Award, AlertCircle, Eye, Search, ArrowUpRight, Download } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { AppApi } from '../api/client';
 import './Dashboard.css';
 
 const MyResults = () => {
@@ -15,12 +16,8 @@ const MyResults = () => {
   const [results, setResults] = useState([]);
 
   useEffect(() => {
-    import('../api/client').then(({ AppApi }) => {
-      AppApi.getMyResults().then(data => {
-        if (data && data.length > 0) {
-          setResults(data);
-        }
-      });
+    AppApi.getMyResults().then(data => {
+      if (Array.isArray(data)) setResults(data);
     });
   }, []);
 
@@ -35,7 +32,6 @@ const MyResults = () => {
     
     setIsSubmitting(true);
     try {
-      const { AppApi } = await import('../api/client');
       await AppApi.requestReevaluation(selectedResult.rawId || selectedResult.id, reevalReason);
       
       // Update local state to reflect 'Under Review'
@@ -47,7 +43,7 @@ const MyResults = () => {
       setReevalReason('');
     } catch (err) {
       console.error(err);
-      alert("Failed to submit request.");
+      alert(`Failed to submit request: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }

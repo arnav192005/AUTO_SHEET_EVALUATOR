@@ -1,7 +1,7 @@
 """
 db/models.py
 
-SQLAlchemy 2 ORM models — all 12 application tables.
+SQLAlchemy 2 ORM models — all 13 application tables.
 
 Relationship diagram:
     exams ──── questions
@@ -70,6 +70,26 @@ class Student(Base):
 
     def __repr__(self) -> str:
         return f"<Student roll={self.roll_number!r}>"
+
+
+# ── 1b. Users (login accounts) ────────────────────────────────────────────────
+
+
+class User(Base):
+    """A login account. Teachers can manage everything; students only see their own work."""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(200), unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(300), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False)  # "teacher" | "student"
+    roll_number: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(default=utcnow, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<User email={self.email!r} role={self.role!r}>"
 
 
 # ── 2. Exams ──────────────────────────────────────────────────────────────────
@@ -347,8 +367,6 @@ class EvaluationResult(Base):
 
     __tablename__ = "evaluation_results"
     __table_args__ = (Index("ix_eval_review_status", "review_status"),)
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     extracted_answer_id: Mapped[int] = mapped_column(

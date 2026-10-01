@@ -7,6 +7,15 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/data:/app/data
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      APP_ENV: production
+      # Browser origin of the frontend container below.
+      CORS_ORIGINS: http://localhost:3000
+      # Set TEACHER_EMAIL, TEACHER_PASSWORD, GEMINI_API_KEY (and optionally
+      # AUTH_SECRET) in backend/.env — production mode creates no demo account.
     restart: unless-stopped
 
   frontend:

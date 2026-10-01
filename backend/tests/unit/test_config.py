@@ -5,19 +5,21 @@ Unit tests for packages/common/config.py
 """
 from __future__ import annotations
 
-import os
-
 import pytest
+
+from packages.common.config import get_settings
+
+
+@pytest.fixture(autouse=True)
+def _fresh_settings():
+    """Each test gets fresh settings, and the cached ones are restored afterwards."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 def test_settings_defaults() -> None:
     """Settings load with sensible defaults even without a .env file."""
-    from packages.common.config import get_settings
-
-    get_settings.cache_clear()
-    os.environ["ALLOWED_TEACHER_IDS"] = "teacher_demo"
-    os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./data/test.db"
-
     settings = get_settings()
     assert settings.app_env in ("development", "production")
     assert settings.confidence_auto_approve == pytest.approx(0.85)
@@ -25,34 +27,22 @@ def test_settings_defaults() -> None:
     assert settings.api_port == 8000
 
 
-def test_teacher_id_parsing() -> None:
+def test_teacher_id_parsing(monkeypatch) -> None:
     """Comma-separated teacher IDs from env are parsed into a list."""
-    from packages.common.config import get_settings
-
-    get_settings.cache_clear()
-    os.environ["ALLOWED_TEACHER_IDS"] = "teacher_ravi, teacher_priya , teacher_amit"
-
-    settings = get_settings()
-    ids = settings.allowed_teacher_ids  # property call
-    assert "teacher_ravi" in ids
-    assert "teacher_priya" in ids
-    assert "teacher_amit" in ids
-    assert len(ids) == 3
+    monkeypatch.setenv("ALLOWED_TEACHER_IDS", "teacher_ravi, teacher_priya , teacher_amit")
+    ids = get_settings().allowed_teacher_ids
+    assert ids == ["teacher_ravi", "teacher_priya", "teacher_amit"]
 
 
-def test_is_development_flag() -> None:
-    from packages.common.config import get_settings
+def test_cors_origins_parsing(monkeypatch) -> None:
+    monkeypatch.setenv("CORS_ORIGINS", "https://a.example, https://b.example")
+    assert get_settings().cors_origins == ["https://a.example", "https://b.example"]
 
-    get_settings.cache_clear()
-    os.environ["APP_ENV"] = "development"
-    os.environ["ALLOWED_TEACHER_IDS"] = "teacher_test"
+
+def test_is_development_flag(monkeypatch) -> None:
+    monkeypatch.setenv("APP_ENV", "development")
     assert get_settings().is_development is True
 
     get_settings.cache_clear()
-    os.environ["APP_ENV"] = "production"
+    monkeypatch.setenv("APP_ENV", "production")
     assert get_settings().is_development is False
-
-    # Restore for other tests
-    os.environ["APP_ENV"] = "development"
-    get_settings.cache_clear()
-

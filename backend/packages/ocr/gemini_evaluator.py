@@ -1,7 +1,22 @@
-import os
 import json
+
 from google import genai
 from google.genai import types
+
+from packages.common.logging import get_logger
+
+logger = get_logger(__name__)
+
+_PLACEHOLDER_PREFIXES = ("your", "YOUR", "<", "changeme")
+
+
+def gemini_key_configured() -> bool:
+    """True only for a real-looking key (not empty and not a .env.example placeholder)."""
+    from packages.common.config import get_settings
+
+    key = (get_settings().gemini_api_key or "").strip()
+    return bool(key) and not key.startswith(_PLACEHOLDER_PREFIXES)
+
 
 def evaluate_answer_sheet(
     files_data: list[dict], 
@@ -49,8 +64,8 @@ def evaluate_answer_sheet(
     try:
         api_key = settings.gemini_api_key
 
-        if not api_key or api_key == "YOUR_GEMINI_API_KEY":
-            raise ValueError("Gemini API key is not configured.")
+        if not gemini_key_configured():
+            raise ValueError("Gemini API key is not configured (set GEMINI_API_KEY).")
 
         client = genai.Client(api_key=api_key)
 
@@ -77,8 +92,11 @@ def evaluate_answer_sheet(
                 if response and response.text:
                     break
             except Exception as model_err:
-                print(f"[GeminiEvaluator] Model {candidate_model} attempt: {model_err}")
+                logger.warning("gemini_model_failed", model=candidate_model, error=str(model_err)[:300])
                 last_model_err = model_err
+                # A bad key fails the same way on every model; don't burn more calls.
+                if "API_KEY_INVALID" in str(model_err) or "PERMISSION_DENIED" in str(model_err):
+                    break
 
         if not response or not response.text:
             if last_model_err:
@@ -87,67 +105,23 @@ def evaluate_answer_sheet(
 
         response_text = response.text or "{}"
         data = json.loads(response_text)
-        
+        # Gemini sometimes wraps the object in a list.
+        if isinstance(data, list):
+            data = next((d for d in data if isinstance(d, dict)), None)
+        if not isinstance(data, dict) or "score" not in data:
+            raise ValueError("Gemini returned an unexpected response format.")
+        data["score"] = min(max(float(data["score"]), 0.0), float(max_marks))
+
         # Fill defaults for schema consistency
         data.setdefault("expectedAnswer", expected_answer or "Expected answer based on standard rubric.")
         data.setdefault("maxScore", max_marks)
         data.setdefault("reasoning", data.get("llmRationale", "Evaluation complete."))
         data.setdefault("missingConcepts", [])
-        data.setdefault("reviewStatus", "AUTO_APPROVED" if data.get("aiConfidence", 90) >= 85 else "NEEDS_REVIEW")
+        data.setdefault("reviewStatus", "NEEDS_REVIEW")
         return data
 
     except Exception as e:
-        print(f"[GeminiEvaluator] Error during evaluation: {e}")
-
-        is_rate_limit = "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e) or "quota" in str(e).lower()
-        # Provide fallback if demo_mode is enabled OR if Gemini API quota is exhausted (429)
-        if not settings.demo_mode and not is_rate_limit:
-            raise e
-
-        # Reliable fallback for local demo mode without active API key
-        fallback_text = (
-            "2x² - x - 6 = 0\n"
-            "2x² - 4x + 3x - 6 = 0\n"
-            "2x(x - 2) + 3(x - 2) = 0\n"
-            "(2x + 3)(x - 2) = 0\n"
-            "x = -3/2, x = 2"
-        )
-        
-        extracted_texts = []
-        for file_data in files_data:
-            if file_data["mime_type"] == "application/pdf":
-                try:
-                    import pypdf
-                    import io
-                    reader = pypdf.PdfReader(io.BytesIO(file_data["bytes"]))
-                    for page in reader.pages:
-                        text = page.extract_text()
-                        if text:
-                            extracted_texts.append(text)
-                except Exception as pdf_err:
-                    print(f"[GeminiEvaluator] PDF extraction failed: {pdf_err}")
-        
-        if extracted_texts:
-            text_content = "\n".join(extracted_texts).strip()
-            if text_content:
-                fallback_text = text_content
-
-        fallback_expected = expected_answer or (
-            "To solve 2x² - x - 6 = 0: Split the middle term to get 2x² - 4x + 3x - 6 = 0. "
-            "Factorize: 2x(x - 2) + 3(x - 2) = 0, giving (2x + 3)(x - 2) = 0. Roots: x = -3/2, x = 2."
-        )
-        return {
-            "studentAnswer": fallback_text,
-            "expectedAnswer": fallback_expected,
-            "llmRationale": (
-                f"Extracted student content locally. Recommended for teacher review ({max_marks}/{max_marks} preliminary score)."
-            ),
-            "reasoning": "Extracted student content locally. Recommended for teacher review.",
-            "score": float(max_marks),
-            "maxScore": float(max_marks),
-            "aiConfidence": 78,
-            "missingConcepts": ["Manual review recommended to verify extracted text against answer key."],
-            "reviewStatus": "NEEDS_REVIEW"
-        }
-
-
+        # Never invent a grade. Failures propagate so the job is marked FAILED
+        # and the sheet goes to a teacher instead of receiving full marks.
+        logger.error("gemini_evaluation_failed", error=str(e)[:300])
+        raise

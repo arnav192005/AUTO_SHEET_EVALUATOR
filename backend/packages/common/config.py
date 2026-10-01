@@ -67,6 +67,28 @@ class Settings(BaseSettings):
         """Parsed list of allowed teacher IDs from the comma-separated env var."""
         return [tid.strip() for tid in self.allowed_teacher_ids_raw.split(",") if tid.strip()]
 
+    # Secret used to sign login tokens. If unset, a random secret is generated
+    # once and persisted to `auth_secret_file` so tokens survive restarts.
+    auth_secret: str | None = None
+    auth_secret_file: Path = Path("./data/.auth_secret")
+    auth_token_ttl_hours: int = 24 * 7
+
+    # Bootstrap teacher account (created at startup if it doesn't exist).
+    # In development a demo teacher is created when these are unset.
+    teacher_email: str | None = None
+    teacher_password: str | None = None
+    teacher_name: str = "Teacher"
+
+    # Comma-separated list of browser origins allowed by CORS in production.
+    cors_origins_raw: str = Field(default="", alias="CORS_ORIGINS")
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins_raw.split(",") if o.strip()]
+
+    # ── Uploads ───────────────────────────────────────────────────────────────
+    max_upload_mb: int = 20
+
     # ── Budget Controls ───────────────────────────────────────────────────────
     daily_vision_api_budget: int = 500
     daily_llm_token_budget: int = 1_000_000

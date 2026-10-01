@@ -317,3 +317,60 @@ h1, h2, h3, h4 {
   border-color: var(--accent-primary);
   box-shadow: 2px 2px 0px 0px var(--border-color);
 }
+
+/* ── App shell (sidebar + main) ───────────────────────────────────────────── */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0; /* let wide content scroll instead of squeezing the page */
+  padding: 2rem;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Wide tables scroll horizontally instead of overflowing the page */
+.app-main table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .app-main {
+    height: auto;
+    overflow-y: visible;
+    padding: 1rem;
+  }
+}
+
+/* Page headers wrap their action buttons on narrow screens */
+@media (max-width: 900px) {
+  .page-header,
+  .review-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .page-header > div,
+  .review-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .page-header h1,
+  .review-title h1 {
+    font-size: 1.6rem;
+    word-break: break-word;
+  }
+}

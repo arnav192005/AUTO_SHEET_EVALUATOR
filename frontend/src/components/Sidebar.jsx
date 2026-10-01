@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, UploadCloud, FileCheck2, Settings, Download, LogOut, User, Info } from 'lucide-react';
+import { AppApi, getAuth, clearAuth } from '../api/client';
 import './Sidebar.css';
 
 const Sidebar = () => {
@@ -9,36 +10,16 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/health');
-        if (response.ok) {
-          setIsConnected(true);
-        } else {
-          setIsConnected(false);
-        }
-      } catch (e) {
-        setIsConnected(false);
-      }
-    };
+    const checkConnection = async () => setIsConnected(await AppApi.health());
 
     checkConnection();
     const interval = setInterval(checkConnection, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  const authData = localStorage.getItem('auth');
-  let role = 'teacher';
-  let userName = '';
-  if (authData) {
-    try {
-      const parsed = JSON.parse(authData);
-      role = parsed.role || 'teacher';
-      userName = parsed.name || (role === 'teacher' ? 'Arnav Panwala' : 'Student User');
-    } catch (e) {}
-  } else {
-    userName = 'Arnav Panwala';
-  }
+  const auth = getAuth();
+  const role = auth?.role || 'student';
+  const userName = auth?.name || (role === 'teacher' ? 'Teacher' : 'Student');
 
   const navItems = role === 'teacher' ? [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -54,7 +35,7 @@ const Sidebar = () => {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('auth');
+    clearAuth();
     navigate('/');
   };
 

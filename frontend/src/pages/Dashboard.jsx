@@ -61,6 +61,9 @@ const Dashboard = () => {
     averageScore: 0
   });
 
+  const [topPerformers, setTopPerformers] = useState([]);
+  const [topicsNeedingAttention, setTopicsNeedingAttention] = useState([]);
+
   // Answer Key Rubric state
   const [questions, setQuestions] = useState([]);
   const [qNumber, setQNumber] = useState(1);
@@ -70,6 +73,8 @@ const Dashboard = () => {
   const [rubricMessage, setRubricMessage] = useState(null);
 
   const [reevalRequests, setReevalRequests] = useState([]);
+  const [exams, setExams] = useState([]);
+  const [rubricExamId, setRubricExamId] = useState(null);
 
   const loadData = () => {
     AppApi.getRecentBatches().then(data => {
@@ -80,12 +85,35 @@ const Dashboard = () => {
       if (data) setStats(data);
     });
 
-    AppApi.getExamQuestions(1).then(data => {
-      if (Array.isArray(data)) setQuestions(data);
+    AppApi.getExams().then(data => {
+      if (!Array.isArray(data)) return;
+      setExams(data);
+      // Default the answer-key editor to the most recent exam.
+      setRubricExamId(prev => (prev && data.some(e => e.id === prev) ? prev : data[0]?.id ?? null));
     });
 
     AppApi.getReevaluations().then(data => {
       if (Array.isArray(data)) setReevalRequests(data);
+    });
+
+    AppApi.getScoreAnalytics().then(data => {
+      if (data && Array.isArray(data.details)) {
+        // Sort by percentage descending
+        const sorted = [...data.details].sort((a, b) => b.percentage - a.percentage);
+        
+        // Remove duplicates by student, keeping highest score
+        const uniquePerformers = [];
+        const seen = new Set();
+        for (const p of sorted) {
+          if (!seen.has(p.student)) {
+            seen.add(p.student);
+            uniquePerformers.push(p);
+          }
+        }
+        
+        // Take top 3
+        setTopPerformers(uniquePerformers.slice(0, 3));
+      }
     });
   };
 
@@ -93,22 +121,34 @@ const Dashboard = () => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (rubricExamId) {
+      AppApi.getExamQuestions(rubricExamId).then(data => setQuestions(Array.isArray(data) ? data : []));
+    } else {
+      setQuestions([]);
+    }
+  }, [rubricExamId]);
+
   const handleSaveRubric = async (e) => {
     e.preventDefault();
     setRubricMessage(null);
+    if (!rubricExamId) {
+      setRubricMessage("Create an exam first (Create Exam page), then define its answer key here.");
+      return;
+    }
     try {
-      await AppApi.addExamQuestion(1, {
+      await AppApi.addExamQuestion(rubricExamId, {
         question_number: parseInt(qNumber, 10),
         question_text: qText,
         expected_answer: expectedAns,
         max_marks: parseFloat(maxMarks),
         rubric_hints: "Ground truth expected answer for AI grading."
       });
-      setRubricMessage("Answer Key & Rubric item saved to SQLite database successfully!");
-      loadData();
+      setRubricMessage("Answer key question saved.");
+      AppApi.getExamQuestions(rubricExamId).then(data => setQuestions(Array.isArray(data) ? data : []));
     } catch (err) {
       console.error("Save rubric error:", err);
-      setRubricMessage("Failed to save rubric item.");
+      setRubricMessage(`Failed to save rubric item: ${err.message}`);
     }
   };
 
@@ -135,14 +175,26 @@ const Dashboard = () => {
       {/* Answer Key / Rubric Modal / Section */}
       {rubricModalOpen && (
         <div className="glass-panel animate-fade-in" style={{ padding: '1.5rem', marginBottom: '2rem', borderColor: 'var(--accent-primary)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
             <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <BookOpen size={20} className="text-accent" /> Define Exam Answer Key & Rubric (Exam ID #1)
+              <BookOpen size={20} className="text-accent" /> Define Exam Answer Key & Rubric
             </h2>
-            <button className="icon-btn" onClick={() => setRubricModalOpen(false)}><X size={18} /></button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <select
+                aria-label="Exam"
+                value={rubricExamId ?? ''}
+                onChange={(e) => setRubricExamId(Number(e.target.value) || null)}
+                style={{ padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', maxWidth: '100%' }}
+              >
+                {exams.length === 0 && <option value="">No exams yet</option>}
+                {exams.map((ex) => (
+                  <option key={ex.id} value={ex.id}>{ex.title} (#{ex.id})</option>
+                ))}
+              </select>
+              <button className="icon-btn" aria-label="Close" onClick={() => setRubricModalOpen(false)}><X size={18} /></button>
+            </div>
           </div>
 
-          {/* Fallback Warning for Rubric Setup */}
           <div style={{
             backgroundColor: 'rgba(255, 165, 0, 0.1)',
             border: '1px solid var(--warning-color)',
@@ -156,7 +208,7 @@ const Dashboard = () => {
             gap: '0.5rem'
           }}>
             <AlertCircle size={16} />
-            <span>Note: Without a configured Gemini API key, the system uses local fallback OCR.</span>
+            <span>Note: AI grading needs a Gemini API key on the server. Without one, uploaded sheets are marked as failed (no marks are awarded).</span>
           </div>
 
           {rubricMessage && (
@@ -393,8 +445,7 @@ const Dashboard = () => {
                           className="btn-secondary" 
                           style={{ padding: '4px 8px', borderColor: 'var(--success-color)', color: 'var(--success-color)' }} 
                           onClick={() => {
-                            const sheetId = parseInt(req.testId.replace('T-', ''));
-                            navigate(`/review?sheetId=${sheetId}`);
+                            navigate(`/review?sheetId=${req.sheetId}`);
                           }}
                           title="Review Sheet"
                         >
@@ -406,11 +457,10 @@ const Dashboard = () => {
                           onClick={async () => {
                             if (window.confirm(`Reject this re-evaluation request for ${req.student}?`)) {
                               try {
-                                const evalId = parseInt(req.id.replace('R-', ''));
-                                await AppApi.dismissReevaluation(evalId);
+                                await AppApi.dismissReevaluation(req.evalId);
                                 setReevalRequests(prev => prev.filter(r => r.id !== req.id));
                               } catch (err) {
-                                alert('Failed to reject request.');
+                                alert(`Failed to reject request: ${err.message}`);
                               }
                             }
                           }}
@@ -439,8 +489,13 @@ const Dashboard = () => {
               <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Top Performers</h3>
             </div>
             <ul style={{ margin: 0, paddingLeft: '1.5rem', color: 'var(--text-primary)' }}>
-              <li style={{ marginBottom: '5px' }}>Priya Sharma (95%)</li>
-              <li style={{ marginBottom: '5px' }}>Ravi Kumar (90%)</li>
+              {topPerformers.length > 0 ? (
+                topPerformers.map((p, idx) => (
+                  <li key={idx} style={{ marginBottom: '5px' }}>{p.student} ({p.percentage}%)</li>
+                ))
+              ) : (
+                <li style={{ marginBottom: '5px', color: 'var(--text-muted)' }}>No evaluation data available yet.</li>
+              )}
             </ul>
           </div>
 
@@ -450,7 +505,13 @@ const Dashboard = () => {
               <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Topics Needing Attention</h3>
             </div>
             <ul style={{ margin: 0, paddingLeft: '1.5rem', color: 'var(--text-primary)' }}>
-              <li style={{ marginBottom: '5px' }}>BST Search Operation & Recursion Analysis</li>
+              {topicsNeedingAttention.length > 0 ? (
+                topicsNeedingAttention.map((topic, idx) => (
+                  <li key={idx} style={{ marginBottom: '5px' }}>{topic}</li>
+                ))
+              ) : (
+                <li style={{ marginBottom: '5px', color: 'var(--text-muted)' }}>No data available yet.</li>
+              )}
             </ul>
           </div>
         </section>

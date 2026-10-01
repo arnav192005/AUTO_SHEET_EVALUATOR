@@ -117,6 +117,24 @@ class ChromaService:
         logger.info(f"Successfully indexed {len(chunks)} chunks for exam {exam_id} in ChromaDB")
         return len(chunks)
 
+    def replace_document(self, exam_id: int, file_bytes: bytes) -> int:
+        """Index a new reference document, dropping the old chunks only if indexing succeeded."""
+        old_ids = self.collection.get(where={"exam_id": exam_id}, include=[])["ids"]
+        indexed = self.index_document(exam_id, file_bytes)
+        if indexed and old_ids:
+            self.collection.delete(ids=old_ids)
+        return indexed
+
+    def delete_exam(self, exam_id: int) -> None:
+        """Remove every indexed chunk for an exam (before re-indexing or on delete)."""
+        self.collection.delete(where={"exam_id": exam_id})
+
+    def clear_all(self) -> None:
+        """Remove every indexed chunk for every exam."""
+        existing = self.collection.get(include=[])
+        if existing["ids"]:
+            self.collection.delete(ids=existing["ids"])
+
     def retrieve_context(self, exam_id: int, query: str, top_k: int = 3) -> str:
         """
         Retrieves top K most relevant chunks for a given query and exam_id.
